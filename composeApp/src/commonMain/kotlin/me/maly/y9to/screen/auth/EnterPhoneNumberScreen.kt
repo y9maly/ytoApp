@@ -40,130 +40,42 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.rememberGraphicsLayer
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EnterPhoneNumberScreen(
-    phoneNumber: String,
-    onChangePhoneNumber: (String) -> Unit,
-    onEmit: () -> Boolean,
+    phoneNumber: TextFieldValue,
+    onChangePhoneNumber: (TextFieldValue) -> Unit,
+    onEmit: () -> Unit,
     loading: Boolean,
     invalidPhoneNumber: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    var confirmDialog by remember { mutableStateOf(false) }
-
-    val backgroundBlur by animateDpAsState(
-        if (confirmDialog) 12.dp
-        else if (loading) 8.dp
-        else 0.dp
+    BaseEnterScreen(
+        modifier = modifier,
+        value = phoneNumber,
+        onChangeValue = { onChangePhoneNumber(it.copy(text = it.text.filter { it.isDigit() })) },
+        title = "Your phone number",
+        subtitle = "You can use any sequence of numbers. It will be public.",
+        subsubtitle = null,
+        label = { Text("Phone number") },
+        prefix = { Text("+") },
+        loading = loading,
+        errorText = "This phone number is invalid".takeIf { invalidPhoneNumber },
+        fabEnabled = !invalidPhoneNumber,
+        onEmit = onEmit@{ confirmed ->
+            if (!confirmed)
+                return@onEmit BaseEnterScreen.EmitResult.ShowDialog(BaseEnterScreen.DialogProperties(
+                    title = "Is this the correct number?",
+                    message = phoneNumber.text,
+                    confirm = "Yes",
+                    dismiss = "No, change the number"
+                ))
+            onEmit()
+            BaseEnterScreen.EmitResult.Ok
+        },
     )
-    val fabEnabled = !invalidPhoneNumber
-    val fabAlpha by animateFloatAsState(if (fabEnabled) 1f else 0f)
-
-    Scaffold(modifier) {
-        Column(
-            Modifier
-                .fillMaxSize()
-                .blur(backgroundBlur)
-                .padding(horizontal = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                "Your phone number",
-                style = MaterialTheme.typography.displaySmall
-            )
-
-            Spacer(Modifier.height(48.dp))
-
-            Text(
-                "You can use any sequence of numbers. It will be public.",
-                style = MaterialTheme.typography.labelSmall
-            )
-
-            Spacer(Modifier.height(48.dp))
-
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                value = phoneNumber,
-                onValueChange = {
-                    onChangePhoneNumber(it.filter { it.isDigit() })
-                },
-                textStyle = MaterialTheme.typography.bodyLarge,
-                label = { Text("Phone number") },
-                prefix = { Text("+") },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number
-                )
-            )
-
-            Spacer(Modifier.height(12.dp))
-
-            AnimatedVisibility(invalidPhoneNumber) {
-                Text("This phone number is invalid", color = MaterialTheme.colorScheme.error)
-            }
-
-            Spacer(Modifier.height(48.dp))
-
-            FloatingActionButton(
-                onClick = { if (fabEnabled) confirmDialog = true },
-                Modifier
-                    .align(Alignment.End)
-                    .alpha(fabAlpha),
-                elevation = FloatingActionButtonDefaults.elevation(0.dp, 0.dp, 0.dp, 0.dp),
-            ) {
-//                Icon(Icons.AutoMirrored.Rounded.ArrowForwardIos, null)
-            }
-        }
-
-        if (confirmDialog) {
-            AlertDialog(
-                onDismissRequest = { confirmDialog = false },
-                confirmButton = {
-                    Button(onClick = {
-                        confirmDialog = false
-                        onEmit()
-                    }) {
-                        Text("Yes")
-                    }
-                },
-                dismissButton = {
-                    OutlinedButton({ confirmDialog = false }) {
-                        Text("No, change the number", Modifier.padding(horizontal = 16.dp))
-                    }
-                },
-                title = {
-                    Text("Is this the correct number?")
-                },
-                text = {
-                    Text(phoneNumber, style = MaterialTheme.typography.bodyLarge)
-                }
-            )
-        }
-
-        if (loading) {
-            BasicAlertDialog(
-                onDismissRequest = { /* do nothing */ },
-                properties = DialogProperties(
-                    dismissOnBackPress = false,
-                    dismissOnClickOutside = false
-                )
-            ) {
-                Box(Modifier.fillMaxSize()) {
-                    Box(Modifier
-                        .align(Alignment.Center)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                        .padding(24.dp)
-                    ) {
-                        CircularProgressIndicator()
-                    }
-                }
-            }
-        }
-    }
 }

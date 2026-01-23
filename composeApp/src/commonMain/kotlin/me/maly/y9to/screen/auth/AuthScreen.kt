@@ -1,30 +1,113 @@
 package me.maly.y9to.screen.auth
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
+import pro.respawn.flowmvi.api.Store
+import pro.respawn.flowmvi.compose.dsl.subscribe
+import pro.respawn.flowmvi.util.typed
 
 
-object AuthScreen {
-    sealed interface State {
-        data object Loading : State
+@Composable
+fun AuthScreen(
+    modifier: Modifier = Modifier,
+    store: Store<AuthScreenState, AuthScreenIntent, AuthScreenAction>
+) {
+    var dialog by remember { mutableStateOf<String?>(null) }
 
-        data class Active(
-            val loginState: LoginState,
-            val invalidPhoneNumber: Boolean = false,
-            val invalidEmail: Boolean = false,
-            val processing: Boolean = false,
-        ) : State
-
-        data class Authenticated(val firstName: String, val lastName: String) : State
+    val state by store.subscribe { action ->
+        when (action) {
+            is AuthScreenAction.ShowDialog -> {
+                dialog = action.text
+            }
+        }
     }
 
-    sealed interface LoginState {
-        data object WaitPhoneNumberOrEmail : LoginState
-        data class WaitConfirmCode(val length: Int) : LoginState
+    val currentPhoneNumber = state.typed<AuthScreenState.Unauthenticated>()?.phoneNumber
+    val currentConfirmCode = state.typed<AuthScreenState.ConfirmCode>()?.code
+    val currentPassword = state.typed<AuthScreenState.Password>()?.password
+
+    var phoneNumber by remember { mutableStateOf(TextFieldValue(currentPhoneNumber ?: "")) }
+    var confirmCode by remember { mutableStateOf(TextFieldValue(currentConfirmCode ?: "")) }
+    var password by remember { mutableStateOf(TextFieldValue(currentPassword ?: "")) }
+
+    LaunchedEffect(currentPhoneNumber) {
+        phoneNumber = phoneNumber.copy(text = currentPhoneNumber ?: return@LaunchedEffect)
     }
 
-    sealed interface EmitPhoneNumberResult {
-        data object Ok : EmitPhoneNumberResult
-        data object Unregistered : EmitPhoneNumberResult
-        data object Banned : EmitPhoneNumberResult
+    LaunchedEffect(currentConfirmCode) {
+        confirmCode = confirmCode.copy(text = currentConfirmCode ?: return@LaunchedEffect)
+    }
+
+    LaunchedEffect(currentPassword) {
+        password = password.copy(text = currentPassword ?: return@LaunchedEffect)
+    }
+
+    AnimatedContent(state, modifier, contentKey = { it::class }) { state ->
+        when (state) {
+            is AuthScreenState.Unauthenticated -> {
+                EnterPhoneNumberScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    phoneNumber = phoneNumber,
+                    onChangePhoneNumber = {
+                        phoneNumber = it
+                        store.intent(AuthScreenIntent.ChangePhoneNumber(phoneNumber.text))
+                    },
+                    loading = state.loading,
+                    invalidPhoneNumber = phoneNumber.text in state.invalidPhoneNumbers,
+                    onEmit = {
+                        store.intent(AuthScreenIntent.EmitPhoneNumber)
+                    },
+                )
+            }
+
+            is AuthScreenState.ConfirmCode -> {
+                EnterConfirmCodeScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    code = confirmCode,
+                    onChangeCode = {
+                        confirmCode = it
+                        store.intent(AuthScreenIntent.ChangeConfirmCode(confirmCode.text))
+                    },
+                    loading = state.loading,
+                    invalidCode = confirmCode.text in state.invalidCodes,
+                    codeSourceText = when (state.source) {
+                        ConfirmCodeSource.PhoneNumber -> "Please check your messages"
+                        ConfirmCodeSource.Email -> "Please check your email ans SPAM folder"
+                    },
+                    onEmit = {
+                        store.intent(AuthScreenIntent.EmitConfirmCode)
+                    },
+                )
+            }
+
+            is AuthScreenState.Password -> {
+                EnterPasswordScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    password = password,
+                    onChangePassword = {
+                        password = it
+                        store.intent(AuthScreenIntent.ChangePassword(password.text))
+                    },
+                    hint = state.hint,
+                    loading = state.loading,
+                    invalidPassword = password.text in state.invalidPasswords,
+                    onEmit = {
+                        store.intent(AuthScreenIntent.EmitPassword)
+                    },
+                )
+            }
+
+            is AuthScreenState.Authorized -> {
+                AuthenticatedScreen(Modifier.fillMaxSize(), "${state.firstName} ${state.lastName}")
+            }
+        }
     }
 }
