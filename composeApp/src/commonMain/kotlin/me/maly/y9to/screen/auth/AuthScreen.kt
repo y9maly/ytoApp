@@ -2,11 +2,15 @@ package me.maly.y9to.screen.auth
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
@@ -15,11 +19,13 @@ import pro.respawn.flowmvi.compose.dsl.subscribe
 import pro.respawn.flowmvi.util.typed
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthScreen(
+    component: AuthComponent,
     modifier: Modifier = Modifier,
-    store: Store<AuthScreenState, AuthScreenIntent, AuthScreenAction>
 ) {
+    val store by rememberUpdatedState(component.store)
     var dialog by remember { mutableStateOf<String?>(null) }
 
     val state by store.subscribe { action ->
@@ -106,8 +112,14 @@ fun AuthScreen(
             }
 
             is AuthScreenState.Authorized -> {
-                AuthenticatedScreen(Modifier.fillMaxSize(), "${state.firstName} ${state.lastName}")
+                AuthenticatedScreen(Modifier.fillMaxSize(), "${state.firstName} ${state.lastName ?: ""}")
             }
+        }
+    }
+
+    if (dialog != null) {
+        BasicAlertDialog({ dialog = null }) {
+            Text(dialog ?: "")
         }
     }
 }
