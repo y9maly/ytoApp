@@ -22,10 +22,10 @@ import pro.respawn.flowmvi.util.typed
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthScreen(
-    component: AuthComponent,
+    vm: AuthViewModel,
     modifier: Modifier = Modifier,
 ) {
-    val store by rememberUpdatedState(component.store)
+    val store by rememberUpdatedState(vm.store)
     var dialog by remember { mutableStateOf<String?>(null) }
 
     val state by store.subscribe { action ->

@@ -1,13 +1,8 @@
 package me.maly.y9to.screen.auth
 
-import kotlinx.coroutines.delay
 import pro.respawn.flowmvi.api.MVIAction
 import pro.respawn.flowmvi.api.MVIIntent
 import pro.respawn.flowmvi.api.MVIState
-import pro.respawn.flowmvi.dsl.store
-import pro.respawn.flowmvi.dsl.updateState
-import pro.respawn.flowmvi.dsl.updateStateImmediate
-import pro.respawn.flowmvi.plugins.reduce
 
 
 enum class ConfirmCodeSource { PhoneNumber, Email }

@@ -1,6 +1,12 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
+
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinWithJavaTarget
+import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -11,6 +17,18 @@ plugins {
 }
 
 kotlin {
+    applyDefaultHierarchyTemplate {
+        common {
+            group("notJvm") {
+                withCompilations {
+                    val target = it.target
+                    target !is KotlinJvmTarget &&
+                    (target !is KotlinWithJavaTarget<*, *> || target.platformType != KotlinPlatformType.jvm)
+                }
+            }
+        }
+    }
+
     androidLibrary {
         namespace = "me.maly.y9to"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
@@ -69,6 +87,7 @@ kotlin {
             implementation(libs.navigation3kmp.ui)
             implementation("androidx.paging:paging-common:3.4.0-rc01")
             implementation("androidx.paging:paging-compose:3.4.0-rc01")
+            implementation("tech.annexflow.compose:constraintlayout-compose-multiplatform:0.6.1")
 
             implementation("me.maly.y9to:sdk:1.0-SNAPSHOT")
             implementation("me.maly.y9to:api-types:1.0-SNAPSHOT")

@@ -2,7 +2,6 @@ package me.maly.y9to.navigation.destination
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import me.maly.y9to.screen.auth.AuthComponent
 import me.maly.y9to.screen.auth.AuthScreen
 import org.koin.compose.koinInject
 

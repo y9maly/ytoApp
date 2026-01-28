@@ -1,28 +1,34 @@
 package me.maly.y9to.compose.components.post
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import androidx.compose.ui.unit.sp
+import kotlinx.datetime.LocalDateTime
+import me.maly.y9to.compose.time.rememberLocalDateTime
 import me.maly.y9to.types.UiPostAuthorPreview
-import me.maly.y9to.types.UiPostContent
+import me.maly.y9to.types.UiPostTerminateAction
 import org.jetbrains.compose.resources.painterResource
 import y9to.composeapp.generated.resources.Res
+import y9to.composeapp.generated.resources.cat1
+import y9to.composeapp.generated.resources.deletedUser
 import y9to.composeapp.generated.resources.repeat
 import kotlin.time.Instant
 
@@ -32,47 +38,72 @@ fun PostHeader(
     author: UiPostAuthorPreview,
     publishDate: Instant,
     isRepost: Boolean,
-    isEdited: Boolean,
-    isDeleted: Boolean,
+    terminateAction: UiPostTerminateAction?,
     modifier: Modifier = Modifier,
 ) = Row(
     modifier = modifier
         .height(IntrinsicSize.Min),
     verticalAlignment = Alignment.CenterVertically
 ) {
-    if (isRepost) {
-        Icon(painterResource(Res.drawable.repeat), null, Modifier.size(24.dp))
-        Spacer(Modifier.width(4.dp))
+    val publishLocalDate = publishDate.rememberLocalDateTime()
+
+    val avatar = when (author) {
+        is UiPostAuthorPreview.User -> painterResource(Res.drawable.cat1)
+        is UiPostAuthorPreview.DeletedUser -> painterResource(Res.drawable.deletedUser)
     }
+
+    Image(avatar, "Avatar of user ${author.displayName}", Modifier.size(42.dp).clip(CircleShape))
 
     Spacer(Modifier.width(8.dp))
 
     Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceAround) {
-        PostAuthorPreview(author)
+        Row {
+            if (isRepost) {
+                Icon(painterResource(Res.drawable.repeat), null, Modifier.size(24.dp))
+                Spacer(Modifier.width(4.dp))
+            }
 
-        val text = publishDate.toLocalDateTime(TimeZone.currentSystemDefault()).run {
-            buildString {
-                if (isDeleted) {
-                    append("Deleted at ")
+            when (author) {
+                is UiPostAuthorPreview.User -> {
+                    Text(author.displayName, fontWeight = FontWeight.Medium, fontSize = 18.sp)
                 }
 
-                append(day)
-                append(" ")
-                append(month.name.lowercase())
-                append(" at ")
-                if (hour <= 9)
-                    append(0)
-                append(hour)
-                append(":")
-                if (minute <= 9)
-                    append(0)
-                append(minute)
-
-                if (isEdited)
-                    append(" (edited)")
+                is UiPostAuthorPreview.DeletedUser -> {
+                    Text(author.displayName, fontStyle = FontStyle.Italic, fontSize = 16.sp)
+                }
             }
+
+            Text(" • ${publishLocalDate.formatToString()}", fontSize = 14.sp)
         }
 
-        Text(text)
+        when (terminateAction) {
+            null -> {}
+
+            is UiPostTerminateAction.Deletion -> {
+                val deletionLocalDate = terminateAction.timestamp.rememberLocalDateTime()
+
+                Text("Deleted ${deletionLocalDate.formatToString()}", fontSize = 12.sp)
+            }
+
+            is UiPostTerminateAction.Edited -> {
+                val lastEditLocalDate = terminateAction.timestamp.rememberLocalDateTime()
+
+                Text("Edited ${lastEditLocalDate.formatToString()}", fontSize = 12.sp)
+            }
+        }
     }
+}
+
+private fun LocalDateTime.formatToString() = buildString {
+    append(day)
+    append(" ")
+    append(month.name.lowercase())
+    append(" at ")
+    if (hour <= 9)
+        append(0)
+    append(hour)
+    append(":")
+    if (minute <= 9)
+        append(0)
+    append(minute)
 }

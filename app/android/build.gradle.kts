@@ -20,6 +20,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodelCompose)
     implementation(libs.androidx.lifecycle.runtimeCompose)
     implementation("me.maly.y9to:api-types:1.0-SNAPSHOT")
+    implementation(project(":composeApp"))
 
     implementation(libs.compose.uiToolingPreview)
     implementation(libs.androidx.activity.compose)
@@ -48,6 +49,6 @@ android {
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }

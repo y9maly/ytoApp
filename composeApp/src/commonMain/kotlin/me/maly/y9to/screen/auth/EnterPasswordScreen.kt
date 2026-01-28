@@ -16,7 +16,7 @@ fun EnterPasswordScreen(
     invalidPassword: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    BaseEnterScreen(
+    TemplateEnterScreen(
         modifier = modifier,
         value = password,
         onChangeValue = onChangePassword,
@@ -30,7 +30,7 @@ fun EnterPasswordScreen(
         fabEnabled = !invalidPassword,
         onEmit = onEmit@{
             onEmit()
-            BaseEnterScreen.EmitResult.Ok
+            TemplateEnterScreen.EmitResult.Ok
         },
     )
 }

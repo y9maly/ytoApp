@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import me.maly.y9to.types.UiPost
 import me.maly.y9to.types.UiPostContent
+import me.maly.y9to.types.UiPostTerminateAction
 
 
 @Composable
@@ -44,8 +45,9 @@ fun Post(
         author = post.author,
         publishDate = post.publishDate,
         isRepost = post.content is UiPostContent.Repost,
-        isDeleted = false,
-        isEdited = post.lastEditDate != null,
+        terminateAction =
+            if (post.lastEditDate != null) UiPostTerminateAction.Edited(post.lastEditDate)
+            else null,
     )
 
     Spacer(Modifier.height(8.dp))

@@ -1,10 +1,57 @@
 package me.maly.y9to.compose
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkOut
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.animation.AnimatedVisibility as _AnimatedVisibility
 
+
+typealias ContentPadding = PaddingValues
+object EmptyContentPadding : PaddingValues by PaddingValues.Zero
+
+/**
+ * ```
+ * // Works only on jvm
+ * fun main() = preview { Something() }
+ * ```
+ */
+expect fun preview(content: @Composable () -> Unit)
+fun previewColumn(content: @Composable () -> Unit) = preview { Column { content() } }
+
+/**
+ * ```
+ * Row { Box { AnimatedVisibility(state) {} } } // Compile-time error 🙄🙄🙄😒😒😒
+ * Row { Box { null.AnimatedVisibility(state) {} } } // workaround
+ * ```
+ */
+@Composable
+fun Nothing?.AnimatedVisibility(
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+    enter: EnterTransition = fadeIn() + expandIn(),
+    exit: ExitTransition = shrinkOut() + fadeOut(),
+    label: String = "AnimatedVisibility",
+    content: @Composable() AnimatedVisibilityScope.() -> Unit
+) {
+    _AnimatedVisibility(visible, modifier, enter, exit, label, content)
+}
+
+inline val Placeable.size get() = IntSize(width, height)
+inline val Constraints.maxSize get() = IntSize(maxWidth, maxHeight)
 
 infix fun PaddingValues.plusAll(other: PaddingValues) = object : PaddingValues {
     override fun calculateLeftPadding(layoutDirection: LayoutDirection): Dp =

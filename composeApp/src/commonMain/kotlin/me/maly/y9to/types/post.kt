@@ -54,3 +54,8 @@ sealed interface UiRepostPreview {
 
     val idOrNull: String? get() = (this as? Post)?.id
 }
+
+sealed interface UiPostTerminateAction {
+    data class Edited(val timestamp: Instant) : UiPostTerminateAction
+    data class Deletion(val timestamp: Instant) : UiPostTerminateAction
+}

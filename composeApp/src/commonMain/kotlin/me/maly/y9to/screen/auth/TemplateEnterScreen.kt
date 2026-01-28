@@ -1,7 +1,6 @@
 package me.maly.y9to.screen.auth
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
@@ -42,13 +41,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import me.maly.y9to.screen.auth.BaseEnterScreen.EmitResult
+import me.maly.y9to.screen.auth.TemplateEnterScreen.EmitResult
 import org.jetbrains.compose.resources.painterResource
 import y9to.composeapp.generated.resources.Res
 import y9to.composeapp.generated.resources.arrow_forward_ios
 
 
-object BaseEnterScreen {
+object TemplateEnterScreen {
     data class DialogProperties(
         val title: String,
         val message: String,
@@ -65,7 +64,7 @@ object BaseEnterScreen {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BaseEnterScreen(
+fun TemplateEnterScreen(
     value: TextFieldValue,
     onChangeValue: (TextFieldValue) -> Unit,
     onEmit: (confirmed: Boolean) -> EmitResult,
@@ -79,7 +78,7 @@ fun BaseEnterScreen(
     fabEnabled: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    var dialog by remember { mutableStateOf<BaseEnterScreen.DialogProperties?>(null) }
+    var dialog by remember { mutableStateOf<TemplateEnterScreen.DialogProperties?>(null) }
 
     val backgroundBlur by animateDpAsState(
         if (dialog != null) 12.dp

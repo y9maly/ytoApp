@@ -15,19 +15,10 @@ import me.maly.y9to.navigation.destination.Destination
 
 @Composable
 fun NavHost(
-    initialDestination: Destination,
+    backStack: List<Destination>,
     destinations: Set<Destination>,
-    serializer: KSerializer<Destination>?,
     modifier: Modifier = Modifier,
 ) {
-    val backStack = if (serializer != null) {
-        rememberSerializable(
-            serializer = SnapshotStateListSerializer(serializer)
-        ) { mutableStateListOf(initialDestination) }
-    } else {
-        retain { mutableStateListOf(initialDestination) }
-    }
-
     NavDisplay(
         modifier = modifier,
         backStack = backStack,

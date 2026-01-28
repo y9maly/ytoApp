@@ -15,7 +15,7 @@ fun EnterConfirmCodeScreen(
     invalidCode: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    BaseEnterScreen(
+    TemplateEnterScreen(
         modifier = modifier,
         value = code,
         onChangeValue = { onChangeCode(it.copy(text = it.text.filter { it.isDigit() })) },
@@ -29,7 +29,7 @@ fun EnterConfirmCodeScreen(
         fabEnabled = !invalidCode,
         onEmit = onEmit@{
             onEmit()
-            BaseEnterScreen.EmitResult.Ok
+            TemplateEnterScreen.EmitResult.Ok
         },
     )
 }

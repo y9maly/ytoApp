@@ -6,8 +6,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import me.maly.y9to.types.UiPostContent
+import me.maly.y9to.types.UiPostTerminateAction
 import me.maly.y9to.types.UiRepostPreview
+import kotlin.time.Clock
 
 
 @Composable
@@ -31,8 +34,9 @@ fun RepostPreview(
             author = preview.author,
             publishDate = preview.publishDate,
             isRepost = preview.content is UiPostContent.Repost,
-            isEdited = preview.lastEditDate != null,
-            isDeleted = false,
+            terminateAction =
+                if (preview.lastEditDate != null) UiPostTerminateAction.Edited(preview.lastEditDate)
+                else null,
             Modifier.fillMaxWidth()
         )
         
@@ -50,11 +54,10 @@ fun RepostPreview(
             author = preview.author,
             publishDate = preview.deletionDate,
             isRepost = false,
-            isEdited = false,
-            isDeleted = true,
+            terminateAction = UiPostTerminateAction.Deletion(preview.deletionDate),
             Modifier.fillMaxWidth()
         )
 
-        Text("* Original post was deleted *", fontFamily = FontFamily.Cursive)
+        Text("This post was deleted", fontStyle = FontStyle.Italic)
     }
 }

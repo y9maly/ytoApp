@@ -4,34 +4,59 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import androidx.paging.PagingData
 import androidx.paging.PagingSource
+import androidx.paging.PagingSource.LoadParams
+import androidx.paging.PagingSource.LoadResult
 import androidx.paging.cachedIn
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import me.maly.y9to.types.UiPost
 import me.maly.y9to.types.UiPostAuthorPreview
 import me.maly.y9to.types.UiPostContent
 import me.maly.y9to.types.UiRepostPreview
-import pro.respawn.flowmvi.api.PipelineContext
-import pro.respawn.flowmvi.api.Store
-import pro.respawn.flowmvi.dsl.store
-import pro.respawn.flowmvi.plugins.reduce
+import y9to.api.types.AuthState
 import y9to.api.types.Post
+import y9to.api.types.PostAuthorPreview
 import y9to.api.types.PostContent
 import y9to.api.types.RepostPreview
 import y9to.libs.stdlib.PagingKey
 import y9to.libs.stdlib.SpliceKey
+import y9to.libs.stdlib.coroutines.flow.collectIn
 import y9to.sdk.Client
 import y9to.sdk.types.FeedPagingOptions
-import kotlin.properties.Delegates
 
 
-interface FeedComponent {
-    val header: FeedHeaderComponent
-    val pagerFlow: Flow<PagingData<UiPost>>
+class FeedDefaultViewModel(client: Client) : ViewModel(), FeedViewModel {
+    override val header = FeedHeaderDefaultComponent(viewModelScope, client)
+
+    override val pagerFlow = Pager(PagingConfig(pageSize = 5)) {
+        FeedSource(client)
+    }.flow.cachedIn(viewModelScope)
+}
+
+class FeedHeaderDefaultComponent(
+    private val scope: CoroutineScope,
+    private val client: Client,
+) : FeedHeaderComponent {
+    override val state = MutableStateFlow<FeedHeaderState>(FeedHeaderState.Loading)
+
+    init {
+        combine(client.auth.authState, client.user.myProfile) { authState, myProfile ->
+            if (authState is AuthState.Unauthorized) {
+                state.value = FeedHeaderState.Unauthenticated
+            } else if (myProfile == null) {
+                state.value = FeedHeaderState.Loading
+            } else {
+                state.value = FeedHeaderState.Authenticated(
+                    firstName = myProfile.firstName,
+                    lastName = myProfile.lastName,
+                )
+            }
+        }.collectIn(scope)
+    }
 }
 
 private class FeedSource(private val client: Client) : PagingSource<PagingKey, UiPost>() {
@@ -81,11 +106,18 @@ private class FeedSource(private val client: Client) : PagingSource<PagingKey, U
             originalPreview = when (val preview = preview) {
                 is RepostPreview.Post -> UiRepostPreview.Post(
                     id = preview.postId.long.toString(),
-                    author = UiPostAuthorPreview.User(
-                        id = preview.author.id.toString(),
-                        firstName = preview.author.firstName,
-                        lastName = preview.author.lastName,
-                    ),
+                    author = when (val author = preview.author) {
+                        is PostAuthorPreview.User -> UiPostAuthorPreview.User(
+                            id = author.id.toString(),
+                            firstName = author.firstName,
+                            lastName = author.lastName,
+                        )
+
+                        is PostAuthorPreview.DeletedUser -> UiPostAuthorPreview.DeletedUser(
+                            firstName = author.firstName,
+                            lastName = author.lastName,
+                        )
+                    },
                     publishDate = preview.publishDate,
                     lastEditDate = preview.lastEditDate,
                     content = preview.content.map(),
@@ -93,22 +125,20 @@ private class FeedSource(private val client: Client) : PagingSource<PagingKey, U
 
                 is RepostPreview.DeletedPost -> UiRepostPreview.DeletedPost(
                     deletionDate = preview.deletionDate,
-                    author = UiPostAuthorPreview.User(
-                        id = preview.author.id.toString(),
-                        firstName = preview.author.firstName,
-                        lastName = preview.author.lastName,
-                    ),
+                    author = when (val author = preview.author) {
+                        is PostAuthorPreview.User -> UiPostAuthorPreview.User(
+                            id = author.id.toString(),
+                            firstName = author.firstName,
+                            lastName = author.lastName,
+                        )
+
+                        is PostAuthorPreview.DeletedUser -> UiPostAuthorPreview.DeletedUser(
+                            firstName = author.firstName,
+                            lastName = author.lastName,
+                        )
+                    },
                 )
             }
         )
     }
-}
-
-@OptIn(FlowPreview::class)
-class FeedComponentDefault(private val client: Client) : ViewModel(), FeedComponent {
-    override val header = FeedHeaderComponentDefault(client)
-
-    override val pagerFlow = Pager(PagingConfig(pageSize = 5)) {
-        FeedSource(client)
-    }.flow.cachedIn(viewModelScope)
 }
