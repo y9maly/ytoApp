@@ -88,6 +88,7 @@ kotlin {
             implementation("androidx.paging:paging-common:3.4.0-rc01")
             implementation("androidx.paging:paging-compose:3.4.0-rc01")
             implementation("tech.annexflow.compose:constraintlayout-compose-multiplatform:0.6.1")
+            implementation("dev.chrisbanes.haze:haze:1.7.1")
 
             implementation("me.maly.y9to:sdk:1.0-SNAPSHOT")
             implementation("me.maly.y9to:api-types:1.0-SNAPSHOT")

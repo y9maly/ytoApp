@@ -24,11 +24,14 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.LookaheadScope
 import androidx.compose.ui.unit.dp
 import me.maly.y9to.compose.ContentPadding
 import me.maly.y9to.compose.EmptyContentPadding
+import me.maly.y9to.compose.dropBottom
+import me.maly.y9to.compose.takeBottom
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,6 +64,7 @@ fun TemplateProfileScreen(
             .scrollable(ScrollableState {
                 -scrollState.dispatchRawDelta(-it)
             }, Orientation.Vertical),
+        containerColor = Color.Transparent,
         topBar = {
             Header(
                 scrollBehavior = scrollBehavior,
@@ -77,7 +81,10 @@ fun TemplateProfileScreen(
             )
         }
     ) { scaffoldPadding ->
-        Box(Modifier.padding(scaffoldPadding)) {
+        Box(Modifier
+            .padding(contentPadding.dropBottom())
+            .padding(scaffoldPadding.dropBottom())
+        ) {
             LookaheadScope {
                 val items by remember(items) {
                     derivedStateOf {
@@ -97,6 +104,11 @@ fun TemplateProfileScreen(
                     items.forEach { (key, content) ->
                         key(key) { content() }
                     }
+
+                    Spacer(Modifier
+                        .padding(contentPadding.takeBottom())
+                        .padding(scaffoldPadding.takeBottom())
+                    )
                 }
             }
         }

@@ -29,6 +29,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import dev.chrisbanes.haze.HazeProgressive
+import dev.chrisbanes.haze.hazeEffect
+import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.serialization.Serializable
 import me.maly.y9to.screen.feed.FeedScreen
 import me.maly.y9to.screen.myProfile.MyProfileScreen
@@ -67,6 +71,7 @@ fun MainFlowScreen(
     var navbarVisible by remember { mutableStateOf(true) }
     val isAuthenticated by vm.isAuthenticated.collectAsState(null)
     val stateHolder = rememberSaveableStateHolder()
+    val hazeState = rememberHazeState()
     var tab by remember { mutableStateOf(Tab.Feed) }
 
     Scaffold(
@@ -77,38 +82,47 @@ fun MainFlowScreen(
                 enter = slideInVertically { it },
                 exit = slideOutVertically { it },
             ) {
-                NavigationBar(
-                    Modifier
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 12.dp)
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(100))
-                ) {
-                    NavigationBarItem(
-                        selected = tab == Tab.Feed,
-                        onClick = { tab = Tab.Feed },
-                        icon = { Icon(painterResource(Res.drawable.filter_list), null) },
-                        label = { Text("Feed") }
+                Box {
+                    Box(Modifier
+                        .matchParentSize()
+                        .hazeEffect(hazeState) {
+                            progressive = HazeProgressive.verticalGradient(startIntensity = 0f, endIntensity = 1f)
+                        }
                     )
 
-                    NavigationBarItem(
-                        selected = tab == Tab.MyProfile,
-                        onClick = {
-                            when (isAuthenticated) {
-                                null -> {}
-                                true -> tab = Tab.MyProfile
-                                false -> authenticate()
-                            }
-                        },
-                        icon = { Icon(painterResource(Res.drawable.settings), null) },
-                        label = { Text("Settings") }
-                    )
+                    NavigationBar(
+                        Modifier
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 12.dp)
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(100))
+                    ) {
+                        NavigationBarItem(
+                            selected = tab == Tab.Feed,
+                            onClick = { tab = Tab.Feed },
+                            icon = { Icon(painterResource(Res.drawable.filter_list), null) },
+                            label = { Text("Feed") }
+                        )
+
+                        NavigationBarItem(
+                            selected = tab == Tab.MyProfile,
+                            onClick = {
+                                when (isAuthenticated) {
+                                    null -> {}
+                                    true -> tab = Tab.MyProfile
+                                    false -> authenticate()
+                                }
+                            },
+                            icon = { Icon(painterResource(Res.drawable.settings), null) },
+                            label = { Text("Settings") }
+                        )
+                    }
                 }
             }
         }
     ) { scaffoldPadding ->
         AnimatedContent(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().hazeSource(hazeState),
             targetState = tab,
             transitionSpec = {
                 if (tabs.indexOf(initialState) < tabs.indexOf(targetState)) {
