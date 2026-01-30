@@ -1,5 +1,6 @@
 package me.maly.y9to.compose.components.post
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,7 +12,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,9 +36,10 @@ import y9to.composeapp.generated.resources.repeat
 import kotlin.time.Instant
 
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun PostHeader(
-    author: UiPostAuthorPreview,
+    author: UiPostAuthorPreview?,
     publishDate: Instant,
     isRepost: Boolean,
     terminateAction: UiPostTerminateAction?,
@@ -48,11 +52,24 @@ fun PostHeader(
     val publishLocalDate = publishDate.rememberLocalDateTime()
 
     val avatar = when (author) {
+        null -> null
         is UiPostAuthorPreview.User -> painterResource(Res.drawable.cat1)
         is UiPostAuthorPreview.DeletedUser -> painterResource(Res.drawable.deletedUser)
     }
 
-    Image(avatar, "Avatar of user ${author.displayName}", Modifier.size(42.dp).clip(CircleShape))
+    AnimatedContent(avatar) { avatar ->
+        if (avatar == null) {
+            LoadingIndicator(Modifier.size(42.dp))
+            return@AnimatedContent
+        }
+
+        Image(
+            avatar,
+            if (author == null) "Avatar of unknown user"
+            else "Avatar of user ${author.displayName}",
+            Modifier.size(42.dp).clip(CircleShape)
+        )
+    }
 
     Spacer(Modifier.width(8.dp))
 
@@ -64,8 +81,8 @@ fun PostHeader(
             }
 
             when (author) {
-                is UiPostAuthorPreview.User -> {
-                    Text(author.displayName, fontWeight = FontWeight.Medium, fontSize = 18.sp)
+                is UiPostAuthorPreview.User, null -> {
+                    Text(author?.displayName ?: "...", fontWeight = FontWeight.Medium, fontSize = 18.sp)
                 }
 
                 is UiPostAuthorPreview.DeletedUser -> {

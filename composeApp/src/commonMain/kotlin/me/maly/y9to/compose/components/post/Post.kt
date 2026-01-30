@@ -10,8 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import me.maly.y9to.types.UiPost
+import me.maly.y9to.types.UiPostAuthorPreview
 import me.maly.y9to.types.UiPostContent
 import me.maly.y9to.types.UiPostTerminateAction
+import kotlin.time.Instant
 
 
 @Composable
@@ -20,10 +22,32 @@ fun PostCard(
     modifier: Modifier = Modifier,
     gotoProfile: (String) -> Unit = {},
     gotoPostDetails: (String) -> Unit = {},
+) = PostCard(
+    author = post.author,
+    publishDate = post.publishDate,
+    lastEditDate = post.lastEditDate,
+    content = post.content,
+    modifier = modifier,
+    gotoProfile = gotoProfile,
+    gotoPostDetails = gotoPostDetails,
+)
+
+@Composable
+fun PostCard(
+    author: UiPostAuthorPreview?,
+    publishDate: Instant,
+    lastEditDate: Instant?,
+    content: UiPostContent,
+    modifier: Modifier = Modifier,
+    gotoProfile: (String) -> Unit = {},
+    gotoPostDetails: (String) -> Unit = {},
 ) {
     OutlinedCard(modifier) {
         Post(
-            post = post,
+            author = author,
+            publishDate = publishDate,
+            lastEditDate = lastEditDate,
+            content = content,
             modifier = Modifier.fillMaxWidth().padding(8.dp),
             gotoProfile = gotoProfile,
             gotoPostDetails = gotoPostDetails,
@@ -38,15 +62,34 @@ fun Post(
     modifier: Modifier = Modifier,
     gotoProfile: (String) -> Unit = {},
     gotoPostDetails: (String) -> Unit = {},
+) = Post(
+    author = post.author,
+    publishDate = post.publishDate,
+    lastEditDate = post.lastEditDate,
+    content = post.content,
+    modifier = modifier,
+    gotoProfile = gotoProfile,
+    gotoPostDetails = gotoPostDetails,
+)
+
+@Composable
+fun Post(
+    author: UiPostAuthorPreview?,
+    publishDate: Instant,
+    lastEditDate: Instant?,
+    content: UiPostContent,
+    modifier: Modifier = Modifier,
+    gotoProfile: (String) -> Unit = {},
+    gotoPostDetails: (String) -> Unit = {},
 ) = Column(modifier) {
     PostHeader(
         modifier = Modifier
             .fillMaxWidth(),
-        author = post.author,
-        publishDate = post.publishDate,
-        isRepost = post.content is UiPostContent.Repost,
+        author = author,
+        publishDate = publishDate,
+        isRepost = content is UiPostContent.Repost,
         terminateAction =
-            if (post.lastEditDate != null) UiPostTerminateAction.Edited(post.lastEditDate)
+            if (lastEditDate != null) UiPostTerminateAction.Edited(lastEditDate)
             else null,
     )
 
@@ -55,8 +98,8 @@ fun Post(
     PostContent(
         modifier = Modifier
             .fillMaxWidth(),
-        content = post.content,
-        gotoAuthorProfile = { gotoProfile(post.author.idOrNull ?: return@PostContent) },
+        content = content,
+        gotoAuthorProfile = { gotoProfile(author?.idOrNull ?: return@PostContent) },
         gotoProfile = gotoProfile,
         gotoPostDetails = gotoPostDetails,
     )

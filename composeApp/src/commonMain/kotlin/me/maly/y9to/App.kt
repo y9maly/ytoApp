@@ -23,7 +23,7 @@ import org.koin.compose.KoinApplication
 import org.koin.core.module.Module
 
 
-private val modules = GlobalScope.async {
+private fun modules() = GlobalScope.async {
     Module().apply {
         includes(appNavigationModule)
         includes(appSdkModule())
@@ -43,7 +43,7 @@ fun App() {
             var modulesAsync by retain { mutableStateOf<Module?>(null) }
 
             LaunchedEffect(Unit) {
-                modulesAsync = modules.await()
+                modulesAsync = modules().await()
             }
 
             val modules = modulesAsync ?: return@CompositionLocalProvider

@@ -1,21 +1,40 @@
 package me.maly.y9to.screen.feed
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandIn
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Card
 import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
+import me.maly.y9to.compose.components.writePost.WriteAccount
+import me.maly.y9to.compose.components.writePost.WritePostContainer
+import me.maly.y9to.compose.components.writePost.rememberWritePostState
 import me.maly.y9to.compose.dropBottom
 import me.maly.y9to.compose.dropTop
 import me.maly.y9to.compose.plus
+import org.jetbrains.compose.resources.painterResource
+import y9to.composeapp.generated.resources.Res
+import y9to.composeapp.generated.resources.cat1
 
 
 @Composable
@@ -26,6 +45,17 @@ fun FeedScreen(
 ) {
     val headerState by vm.header.state.collectAsState()
     val lazyPagingItems = vm.pagerFlow.collectAsLazyPagingItems()
+    val myProfile by vm.profile.collectAsState(null)
+    val writeAccount = remember(myProfile) {
+        val myProfile = myProfile ?: return@remember null
+        WriteAccount.Personal(
+            avatar = {
+                Image(painterResource(Res.drawable.cat1), null, Modifier.fillMaxSize())
+            },
+            firstName = myProfile.firstName,
+            lastName = myProfile.lastName,
+        )
+    }
 
     Column(modifier.pullToRefresh(
         isRefreshing = lazyPagingItems.loadState.refresh is LoadState.Loading,
@@ -39,9 +69,38 @@ fun FeedScreen(
         )
 
         FeedColumn(
+            vm.newPosts,
+            vm.prePublishPreviews,
             lazyPagingItems,
             Modifier.fillMaxSize(),
             contentPadding = contentPadding.dropTop()
-        )
+        ) { postItems ->
+            item {
+                AnimatedVisibility(
+                    visible = writeAccount != null,
+                    enter =
+                        fadeIn() + expandIn(expandFrom = Alignment.TopStart) { IntSize(it.width, 0) },
+                    exit =
+                        fadeOut() + shrinkOut(shrinkTowards = Alignment.TopStart) { IntSize(it.width, 0) },
+                ) {
+                    var savedWriteAccount by remember { mutableStateOf(writeAccount) }
+                    savedWriteAccount = writeAccount ?: savedWriteAccount
+                    val currentWriteAccount = savedWriteAccount ?: return@AnimatedVisibility
+
+                    Card {
+                        WritePostContainer(rememberWritePostState(
+                            writeAccount = currentWriteAccount,
+                            onPublish = {
+                                vm.publish(UiInputPostContent.Standalone(text.text))
+                                text = TextFieldValue()
+                                expanded = false
+                            }
+                        ))
+                    }
+                }
+            }
+
+            postItems()
+        }
     }
 }
