@@ -25,7 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.datetime.LocalDateTime
-import me.maly.y9to.compose.time.rememberLocalDateTime
+import me.maly.y9to.compose.time.toLocalDateTime
 import me.maly.y9to.types.UiPostAuthorPreview
 import me.maly.y9to.types.UiPostTerminateAction
 import org.jetbrains.compose.resources.painterResource
@@ -49,7 +49,7 @@ fun PostHeader(
         .height(IntrinsicSize.Min),
     verticalAlignment = Alignment.CenterVertically
 ) {
-    val publishLocalDate = publishDate.rememberLocalDateTime()
+    val publishLocalDate = publishDate.toLocalDateTime()
 
     val avatar = when (author) {
         null -> null
@@ -97,13 +97,13 @@ fun PostHeader(
             null -> {}
 
             is UiPostTerminateAction.Deletion -> {
-                val deletionLocalDate = terminateAction.timestamp.rememberLocalDateTime()
+                val deletionLocalDate = terminateAction.timestamp.toLocalDateTime()
 
                 Text("Deleted ${deletionLocalDate.formatToString()}", fontSize = 12.sp)
             }
 
             is UiPostTerminateAction.Edited -> {
-                val lastEditLocalDate = terminateAction.timestamp.rememberLocalDateTime()
+                val lastEditLocalDate = terminateAction.timestamp.toLocalDateTime()
 
                 Text("Edited ${lastEditLocalDate.formatToString()}", fontSize = 12.sp)
             }

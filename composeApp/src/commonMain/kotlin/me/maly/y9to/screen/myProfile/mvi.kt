@@ -1,7 +1,7 @@
 package me.maly.y9to.screen.myProfile
 
-import me.maly.y9to.screen.myProfile.MyProfileScreenState.Edit
-import me.maly.y9to.screen.myProfile.MyProfileScreenState.View
+import me.maly.y9to.screen.myProfile.MyProfileUiState.Edit
+import me.maly.y9to.screen.myProfile.MyProfileUiState.View
 import me.maly.y9to.types.UiMyProfile
 import pro.respawn.flowmvi.api.MVIIntent
 import pro.respawn.flowmvi.api.MVIState
@@ -10,10 +10,10 @@ import y9to.libs.stdlib.optional.Optional
 import y9to.libs.stdlib.optional.none
 
 
-sealed interface MyProfileScreenState : MVIState {
-    data object Loading : MyProfileScreenState
+sealed interface MyProfileUiState : MVIState {
+    data object Loading : MyProfileUiState
 
-    sealed interface Content : MyProfileScreenState {
+    sealed interface Content : MyProfileUiState {
         val myProfile: UiMyProfile
     }
 
@@ -27,30 +27,30 @@ sealed interface MyProfileScreenState : MVIState {
         val birthday: Birthday?,
     ) : Content
 
-    data class Error(val message: String) : MyProfileScreenState
+    data class Error(val message: String) : MyProfileUiState
 }
 
-val MyProfileScreenState.Content.uiFirstFirstName get() =
+val MyProfileUiState.Content.uiFirstFirstName get() =
     if (this is Edit) firstName
     else myProfile.firstName
 
-val MyProfileScreenState.Content.uiFirstLastName get() =
+val MyProfileUiState.Content.uiFirstLastName get() =
     if (this is Edit) lastName
     else myProfile.lastName
 
-val MyProfileScreenState.Content.uiFirstDisplayName get() =
+val MyProfileUiState.Content.uiFirstDisplayName get() =
     if (this is Edit) lastName?.let { "$firstName $lastName" } ?: firstName
     else myProfile.displayName
 
-val MyProfileScreenState.Content.uiFirstBio get() =
+val MyProfileUiState.Content.uiFirstBio get() =
     if (this is Edit) bio
     else myProfile.bio
 
-val MyProfileScreenState.Content.uiFirstBirthday get() =
+val MyProfileUiState.Content.uiFirstBirthday get() =
     if (this is Edit) birthday
     else myProfile.birthday
 
-fun MyProfileScreenState.Content.copy(
+fun MyProfileUiState.Content.copy(
     myProfile: UiMyProfile = this.myProfile,
 ) = when (this) {
     is Edit -> copy(myProfile = myProfile)
@@ -68,4 +68,6 @@ sealed interface MyProfileScreenIntent : MVIIntent {
     ) : MyProfileScreenIntent
 
     data class ExitEditMode(val applyChanges: Boolean) : MyProfileScreenIntent
+
+    data object LogOut : MyProfileScreenIntent
 }

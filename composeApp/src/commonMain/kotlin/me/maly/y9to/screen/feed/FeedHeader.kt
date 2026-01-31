@@ -1,6 +1,5 @@
 package me.maly.y9to.screen.feed
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -24,8 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -40,7 +37,7 @@ import y9to.composeapp.generated.resources.search
 
 @Composable
 fun FeedHeader(
-    state: FeedHeaderState,
+    state: FeedHeaderUiState,
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues.Zero,
 ) {
@@ -56,7 +53,7 @@ fun FeedHeader(
         Spacer(Modifier.height(24.dp))
 
         when (state) {
-            is FeedHeaderState.Loading -> {
+            is FeedHeaderUiState.Loading -> {
                 Text(
                     "Hello",
                     color = MaterialTheme.colorScheme.onSurface,
@@ -67,7 +64,7 @@ fun FeedHeader(
                 )
             }
 
-            is FeedHeaderState.Authenticated -> {
+            is FeedHeaderUiState.Authenticated -> {
                 Text(
                     "Hello, ${state.firstName} ${state.lastName ?: ""}!",
                     color = MaterialTheme.colorScheme.onSurface,
@@ -78,7 +75,7 @@ fun FeedHeader(
                 )
             }
 
-            is FeedHeaderState.Unauthenticated -> {
+            is FeedHeaderUiState.Unauthenticated -> {
                 Text(
                     "Hello, Guest",
                     color = MaterialTheme.colorScheme.onSurface,
@@ -89,7 +86,7 @@ fun FeedHeader(
                 )
             }
 
-            is FeedHeaderState.Error -> {
+            is FeedHeaderUiState.Error -> {
                 Text(
                     "Oops, something went wrong...",
                     color = MaterialTheme.colorScheme.onSurface,

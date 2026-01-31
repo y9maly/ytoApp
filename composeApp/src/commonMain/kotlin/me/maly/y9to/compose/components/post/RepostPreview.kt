@@ -17,9 +17,10 @@ import kotlin.time.Clock
 fun RepostPreview(
     modifier: Modifier = Modifier,
     preview: UiRepostPreview,
+    gotoPostDetails: ((String) -> Unit)? = null,
 ) {
     when (preview) {
-        is UiRepostPreview.Post -> RepostPreview(modifier, preview)
+        is UiRepostPreview.Post -> RepostPreview(modifier, preview, gotoPostDetails)
         is UiRepostPreview.DeletedPost -> RepostPreview(modifier, preview)
     }
 }
@@ -28,6 +29,7 @@ fun RepostPreview(
 fun RepostPreview(
     modifier: Modifier = Modifier,
     preview: UiRepostPreview.Post,
+    gotoPostDetails: ((String) -> Unit)? = null,
 ) {
     Column(modifier) {
         PostHeader(
@@ -40,7 +42,7 @@ fun RepostPreview(
             Modifier.fillMaxWidth()
         )
         
-        PostContent(preview.content)
+        PostContent(preview.content, gotoPostDetails = gotoPostDetails)
     }
 }
 

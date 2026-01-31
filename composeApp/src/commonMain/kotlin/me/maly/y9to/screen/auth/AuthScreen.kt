@@ -14,7 +14,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
-import pro.respawn.flowmvi.api.Store
 import pro.respawn.flowmvi.compose.dsl.subscribe
 import pro.respawn.flowmvi.util.typed
 
@@ -36,9 +35,9 @@ fun AuthScreen(
         }
     }
 
-    val currentPhoneNumber = state.typed<AuthScreenState.Unauthenticated>()?.phoneNumber
-    val currentConfirmCode = state.typed<AuthScreenState.ConfirmCode>()?.code
-    val currentPassword = state.typed<AuthScreenState.Password>()?.password
+    val currentPhoneNumber = state.typed<AuthUiState.Unauthenticated>()?.phoneNumber
+    val currentConfirmCode = state.typed<AuthUiState.ConfirmCode>()?.code
+    val currentPassword = state.typed<AuthUiState.Password>()?.password
 
     var phoneNumber by remember { mutableStateOf(TextFieldValue(currentPhoneNumber ?: "")) }
     var confirmCode by remember { mutableStateOf(TextFieldValue(currentConfirmCode ?: "")) }
@@ -58,7 +57,7 @@ fun AuthScreen(
 
     AnimatedContent(state, modifier, contentKey = { it::class }) { state ->
         when (state) {
-            is AuthScreenState.Unauthenticated -> {
+            is AuthUiState.Unauthenticated -> {
                 EnterPhoneNumberScreen(
                     modifier = Modifier.fillMaxSize(),
                     phoneNumber = phoneNumber,
@@ -74,7 +73,7 @@ fun AuthScreen(
                 )
             }
 
-            is AuthScreenState.ConfirmCode -> {
+            is AuthUiState.ConfirmCode -> {
                 EnterConfirmCodeScreen(
                     modifier = Modifier.fillMaxSize(),
                     code = confirmCode,
@@ -94,7 +93,7 @@ fun AuthScreen(
                 )
             }
 
-            is AuthScreenState.Password -> {
+            is AuthUiState.Password -> {
                 EnterPasswordScreen(
                     modifier = Modifier.fillMaxSize(),
                     password = password,
@@ -111,7 +110,7 @@ fun AuthScreen(
                 )
             }
 
-            is AuthScreenState.Authorized -> {
+            is AuthUiState.Authorized -> {
                 AuthenticatedScreen(Modifier.fillMaxSize(), "${state.firstName} ${state.lastName ?: ""}")
             }
         }

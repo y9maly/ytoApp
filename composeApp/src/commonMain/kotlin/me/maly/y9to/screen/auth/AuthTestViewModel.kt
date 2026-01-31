@@ -15,8 +15,8 @@ class AuthTestViewModel : ViewModel(), AuthViewModel {
 }
 
 
-private fun testStore() = store<AuthScreenState, AuthScreenIntent, AuthScreenAction>(
-    AuthScreenState.Unauthenticated(
+private fun testStore() = store<AuthUiState, AuthScreenIntent, AuthScreenAction>(
+    AuthUiState.Unauthenticated(
         phoneNumberAvailable = true,
         emailAvailable = true,
         usernameAvailable = true,
@@ -31,30 +31,30 @@ private fun testStore() = store<AuthScreenState, AuthScreenIntent, AuthScreenAct
 ) {
     reduce { intent ->
         when (intent) {
-            is AuthScreenIntent.ChangeEmail -> updateStateImmediate<AuthScreenState.Unauthenticated, _> {
+            is AuthScreenIntent.ChangeEmail -> updateStateImmediate<AuthUiState.Unauthenticated, _> {
                 copy(email = intent.email)
             }
 
-            is AuthScreenIntent.ChangeUsername -> updateStateImmediate<AuthScreenState.Unauthenticated, _> {
+            is AuthScreenIntent.ChangeUsername -> updateStateImmediate<AuthUiState.Unauthenticated, _> {
                 copy(username = intent.username)
             }
 
-            is AuthScreenIntent.ChangePhoneNumber -> updateStateImmediate<AuthScreenState.Unauthenticated, _> {
+            is AuthScreenIntent.ChangePhoneNumber -> updateStateImmediate<AuthUiState.Unauthenticated, _> {
                 copy(phoneNumber = intent.phoneNumber)
             }
 
-            is AuthScreenIntent.ChangeConfirmCode -> updateStateImmediate<AuthScreenState.ConfirmCode, _> {
+            is AuthScreenIntent.ChangeConfirmCode -> updateStateImmediate<AuthUiState.ConfirmCode, _> {
                 copy(code = intent.code)
             }
 
-            is AuthScreenIntent.ChangePassword -> updateStateImmediate<AuthScreenState.Password, _> {
+            is AuthScreenIntent.ChangePassword -> updateStateImmediate<AuthUiState.Password, _> {
                 copy(password = intent.password)
             }
 
             is AuthScreenIntent.EmitEmail,
             is AuthScreenIntent.EmitPhoneNumber,
-            is AuthScreenIntent.EmitUsername -> updateState<AuthScreenState.Unauthenticated, _> {
-                updateState<AuthScreenState.Unauthenticated, _> {
+            is AuthScreenIntent.EmitUsername -> updateState<AuthUiState.Unauthenticated, _> {
+                updateState<AuthUiState.Unauthenticated, _> {
                     copy(loading = true)
                 }
 
@@ -79,7 +79,7 @@ private fun testStore() = store<AuthScreenState, AuthScreenIntent, AuthScreenAct
                     else -> {}
                 }
 
-                AuthScreenState.ConfirmCode(
+                AuthUiState.ConfirmCode(
                     code = "",
                     invalidCodes = emptySet(),
                     source = when (intent) {
@@ -99,8 +99,8 @@ private fun testStore() = store<AuthScreenState, AuthScreenIntent, AuthScreenAct
                 )
             }
 
-            AuthScreenIntent.EmitConfirmCode -> updateState<AuthScreenState.ConfirmCode, _> {
-                updateState<AuthScreenState.ConfirmCode, _> {
+            AuthScreenIntent.EmitConfirmCode -> updateState<AuthUiState.ConfirmCode, _> {
+                updateState<AuthUiState.ConfirmCode, _> {
                     copy(loading = true)
                 }
 
@@ -109,7 +109,7 @@ private fun testStore() = store<AuthScreenState, AuthScreenIntent, AuthScreenAct
                 if (code.length != length && code != "123")
                     copy(loading = false, invalidCodes = invalidCodes + code)
                 else
-                    AuthScreenState.Password(
+                    AuthUiState.Password(
                         password = "",
                         invalidPasswords = emptySet(),
                         triesLeft = 5,
@@ -118,8 +118,8 @@ private fun testStore() = store<AuthScreenState, AuthScreenIntent, AuthScreenAct
                     )
             }
 
-            AuthScreenIntent.EmitPassword -> updateState<AuthScreenState.Password, _> {
-                updateState<AuthScreenState.Password, _> {
+            AuthScreenIntent.EmitPassword -> updateState<AuthUiState.Password, _> {
+                updateState<AuthUiState.Password, _> {
                     copy(loading = true)
                 }
 
@@ -128,7 +128,7 @@ private fun testStore() = store<AuthScreenState, AuthScreenIntent, AuthScreenAct
                 if (password.length <= 3)
                     copy(loading = false, invalidPasswords = invalidPasswords + password)
                 else
-                    AuthScreenState.Authorized(
+                    AuthUiState.Authorized(
                         firstName = "First name",
                         lastName = password,
                         loading = false,

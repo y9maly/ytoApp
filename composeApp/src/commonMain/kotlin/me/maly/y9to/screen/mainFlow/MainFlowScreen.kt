@@ -18,8 +18,10 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,11 +36,13 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.serialization.Serializable
+import me.maly.y9to.compose.viewModel.injectViewModel
 import me.maly.y9to.screen.feed.FeedScreen
+import me.maly.y9to.screen.feed.FeedViewModel
 import me.maly.y9to.screen.myProfile.MyProfileScreen
+import me.maly.y9to.screen.myProfile.MyProfileViewModel
 import me.maly.y9to.screen.myProfile.rememberMyProfileScreenState
 import org.jetbrains.compose.resources.painterResource
-import org.koin.compose.koinInject
 import y9to.composeapp.generated.resources.Res
 import y9to.composeapp.generated.resources.filter_list
 import y9to.composeapp.generated.resources.settings
@@ -67,12 +71,20 @@ fun MainFlowScreen(
     vm: MainFlowViewModel,
     authenticate: () -> Unit,
     modifier: Modifier = Modifier,
+    navigatePostDetails: (postId: String) -> Unit = {},
 ) {
-    var navbarVisible by remember { mutableStateOf(true) }
+    var profileEditing by remember { mutableStateOf(false) }
+    val navbarVisible by remember { derivedStateOf { !profileEditing } }
     val isAuthenticated by vm.isAuthenticated.collectAsState(null)
     val stateHolder = rememberSaveableStateHolder()
     val hazeState = rememberHazeState()
     var tab by remember { mutableStateOf(Tab.Feed) }
+
+    LaunchedEffect(tab, isAuthenticated) {
+        if (isAuthenticated == false && tab != Tab.Feed) {
+            tab = Tab.Feed
+        }
+    }
 
     Scaffold(
         modifier,
@@ -138,24 +150,29 @@ fun MainFlowScreen(
         ) { tab ->
             Box(Modifier.fillMaxSize()) {
                 stateHolder.SaveableStateProvider(tab) {
+                    val feedVM = injectViewModel<FeedViewModel>()
+                    val myProfileVM = injectViewModel<MyProfileViewModel>()
+
                     when (tab) {
                         Tab.Feed -> {
                             FeedScreen(
-                                vm = koinInject(),
+                                vm = feedVM,
                                 modifier = Modifier.fillMaxSize(),
                                 contentPadding = scaffoldPadding,
+                                navigatePostDetails = navigatePostDetails,
                             )
                         }
 
                         Tab.MyProfile -> {
                             val state = rememberMyProfileScreenState()
 
-                            LaunchedEffect(state.editing) {
-                                navbarVisible = !state.editing
+                            DisposableEffect(state.editing) {
+                                profileEditing = state.editing
+                                onDispose { profileEditing = false }
                             }
 
                             MyProfileScreen(
-                                vm = koinInject(),
+                                vm = myProfileVM,
                                 modifier = Modifier.fillMaxSize(),
                                 contentPadding = scaffoldPadding,
                                 screenState = state,

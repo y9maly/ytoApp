@@ -1,10 +1,12 @@
 package me.maly.y9to.compose.components.post
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,15 +22,15 @@ import kotlin.time.Instant
 fun PostCard(
     post: UiPost,
     modifier: Modifier = Modifier,
-    gotoProfile: (String) -> Unit = {},
-    gotoPostDetails: (String) -> Unit = {},
+    onClick: (() -> Unit)? = null,
+    gotoPostDetails: ((postId: String) -> Unit)? = null,
 ) = PostCard(
     author = post.author,
     publishDate = post.publishDate,
     lastEditDate = post.lastEditDate,
     content = post.content,
     modifier = modifier,
-    gotoProfile = gotoProfile,
+    onClick = onClick,
     gotoPostDetails = gotoPostDetails,
 )
 
@@ -39,17 +41,25 @@ fun PostCard(
     lastEditDate: Instant?,
     content: UiPostContent,
     modifier: Modifier = Modifier,
-    gotoProfile: (String) -> Unit = {},
-    gotoPostDetails: (String) -> Unit = {},
+    onClick: (() -> Unit)? = null,
+    gotoPostDetails: ((postId: String) -> Unit)? = null,
 ) {
-    OutlinedCard(modifier) {
+    OutlinedCard(
+        modifier = modifier,
+        onClick = { onClick?.invoke() },
+        elevation = CardDefaults.outlinedCardElevation(
+                defaultElevation = 0.dp,
+                hoveredElevation = 0.dp,
+                pressedElevation = 0.dp,
+                focusedElevation = 0.dp
+        ),
+    ) {
         Post(
             author = author,
             publishDate = publishDate,
             lastEditDate = lastEditDate,
             content = content,
             modifier = Modifier.fillMaxWidth().padding(8.dp),
-            gotoProfile = gotoProfile,
             gotoPostDetails = gotoPostDetails,
         )
     }
@@ -60,15 +70,13 @@ fun PostCard(
 fun Post(
     post: UiPost,
     modifier: Modifier = Modifier,
-    gotoProfile: (String) -> Unit = {},
-    gotoPostDetails: (String) -> Unit = {},
+    gotoPostDetails: ((postId: String) -> Unit)? = null,
 ) = Post(
     author = post.author,
     publishDate = post.publishDate,
     lastEditDate = post.lastEditDate,
     content = post.content,
     modifier = modifier,
-    gotoProfile = gotoProfile,
     gotoPostDetails = gotoPostDetails,
 )
 
@@ -79,8 +87,7 @@ fun Post(
     lastEditDate: Instant?,
     content: UiPostContent,
     modifier: Modifier = Modifier,
-    gotoProfile: (String) -> Unit = {},
-    gotoPostDetails: (String) -> Unit = {},
+    gotoPostDetails: ((postId: String) -> Unit)? = null,
 ) = Column(modifier) {
     PostHeader(
         modifier = Modifier
@@ -99,8 +106,6 @@ fun Post(
         modifier = Modifier
             .fillMaxWidth(),
         content = content,
-        gotoAuthorProfile = { gotoProfile(author?.idOrNull ?: return@PostContent) },
-        gotoProfile = gotoProfile,
         gotoPostDetails = gotoPostDetails,
     )
 }

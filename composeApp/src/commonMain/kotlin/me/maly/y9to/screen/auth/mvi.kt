@@ -7,7 +7,7 @@ import pro.respawn.flowmvi.api.MVIState
 
 enum class ConfirmCodeSource { PhoneNumber, Email }
 
-sealed interface AuthScreenState : MVIState {
+sealed interface AuthUiState : MVIState {
     val loading: Boolean
 
     data class Unauthenticated(
@@ -21,7 +21,7 @@ sealed interface AuthScreenState : MVIState {
         val email: String,
         val username: String,
         override val loading: Boolean,
-    ) : AuthScreenState
+    ) : AuthUiState
 
     data class ConfirmCode(
         val code: String,
@@ -29,7 +29,7 @@ sealed interface AuthScreenState : MVIState {
         val source: ConfirmCodeSource,
         val length: Int,
         override val loading: Boolean,
-    ) : AuthScreenState
+    ) : AuthUiState
 
     data class Password(
         val password: String,
@@ -37,13 +37,13 @@ sealed interface AuthScreenState : MVIState {
         val invalidPasswords: Set<String>,
         val hint: String?,
         override val loading: Boolean,
-    ) : AuthScreenState
+    ) : AuthUiState
 
     data class Authorized(
         val firstName: String,
         val lastName: String?,
         override val loading: Boolean,
-    ) : AuthScreenState
+    ) : AuthUiState
 }
 
 sealed interface AuthScreenIntent : MVIIntent {

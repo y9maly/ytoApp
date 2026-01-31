@@ -14,19 +14,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 
 
 @Composable
 internal fun WritePostContainer(
     state: WritePostState,
+    writeAccount: WriteAccount,
     modifier: Modifier = Modifier,
+    onTextChange: (TextFieldValue) -> Unit = { state.text = it },
+    onFocused: () -> Unit = { state.expanded = true },
+    onCollapse: () -> Unit = { state.expanded = false },
+    onPublish: () -> Unit = {},
 ) {
     val focusRequester = remember { FocusRequester() }
 
     Column {
         AccountHeader(
-            state.writeAccount,
+            writeAccount,
             onClick = { state.expanded = !state.expanded }
         )
 
@@ -42,9 +48,9 @@ internal fun WritePostContainer(
                     ExpandedContent(
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                         value = state.text,
-                        onValueChange = state::onTextChange,
-                        onCollapse = state::onCollapse,
-                        onPublish = state::onPublish,
+                        onValueChange = onTextChange,
+                        onCollapse = onCollapse,
+                        onPublish = onPublish,
                         animatedVisibilityScope = this@AnimatedContent,
                         sharedTransitionScope = this@SharedTransitionLayout
                     )
@@ -52,9 +58,9 @@ internal fun WritePostContainer(
                     CollapsedContent(
                         modifier = Modifier.fillMaxWidth(),
                         value = state.text,
-                        onValueChange = state::onTextChange,
-                        onFocused = state::onFocused,
-                        onPublish = state::onPublish,
+                        onValueChange = onTextChange,
+                        onFocused = onFocused,
+                        onPublish = onPublish,
                         animatedVisibilityScope = this@AnimatedContent,
                         sharedTransitionScope = this@SharedTransitionLayout
                     )

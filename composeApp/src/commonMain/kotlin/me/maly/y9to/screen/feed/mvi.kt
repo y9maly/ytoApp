@@ -3,15 +3,15 @@ package me.maly.y9to.screen.feed
 import pro.respawn.flowmvi.api.MVIState
 
 
-sealed interface FeedHeaderState : MVIState {
-    data object Loading : FeedHeaderState
+sealed interface FeedHeaderUiState : MVIState {
+    data object Loading : FeedHeaderUiState
 
     data class Authenticated(
         val firstName: String,
         val lastName: String?,
-    ) : FeedHeaderState
+    ) : FeedHeaderUiState
 
-    data object Unauthenticated : FeedHeaderState
+    data object Unauthenticated : FeedHeaderUiState
 
-    data class Error(val message: String) : FeedHeaderState
+    data class Error(val message: String) : FeedHeaderUiState
 }

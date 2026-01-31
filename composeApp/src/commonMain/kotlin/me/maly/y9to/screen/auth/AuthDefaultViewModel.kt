@@ -17,12 +17,12 @@ import y9to.libs.stdlib.coroutines.flow.firstNotNull
 import y9to.sdk.Client
 
 
-private typealias Ctx = PipelineContext<AuthScreenState, AuthScreenIntent, AuthScreenAction>
+private typealias Ctx = PipelineContext<AuthUiState, AuthScreenIntent, AuthScreenAction>
 
 
 class AuthDefaultViewModel(private val client: Client) : ViewModel(), AuthViewModel {
-    override val store = store<AuthScreenState, AuthScreenIntent, AuthScreenAction>(
-        AuthScreenState.Unauthenticated(
+    override val store = store<AuthUiState, AuthScreenIntent, AuthScreenAction>(
+        AuthUiState.Unauthenticated(
             phoneNumberAvailable = true,
             emailAvailable = true,
             usernameAvailable = true,
@@ -42,7 +42,7 @@ class AuthDefaultViewModel(private val client: Client) : ViewModel(), AuthViewMo
                     is AuthState.Authorized -> {
                         val me = client.user.myProfile.firstNotNull()
                         updateState {
-                            AuthScreenState.Authorized(
+                            AuthUiState.Authorized(
                                 firstName = me.firstName,
                                 lastName = me.lastName,
                                 loading = false
@@ -52,7 +52,7 @@ class AuthDefaultViewModel(private val client: Client) : ViewModel(), AuthViewMo
 
                     AuthState.Unauthorized -> {
                         updateState {
-                            AuthScreenState.Unauthenticated(
+                            AuthUiState.Unauthenticated(
                                 phoneNumberAvailable = true,
                                 emailAvailable = true,
                                 usernameAvailable = true,
@@ -72,43 +72,43 @@ class AuthDefaultViewModel(private val client: Client) : ViewModel(), AuthViewMo
 
         reduce { intent ->
             when (intent) {
-                is AuthScreenIntent.ChangeEmail -> updateState<AuthScreenState.Unauthenticated, _> {
+                is AuthScreenIntent.ChangeEmail -> updateState<AuthUiState.Unauthenticated, _> {
                     copy(email = intent.email)
                 }
 
-                is AuthScreenIntent.ChangeUsername -> updateState<AuthScreenState.Unauthenticated, _> {
+                is AuthScreenIntent.ChangeUsername -> updateState<AuthUiState.Unauthenticated, _> {
                     copy(username = intent.username)
                 }
 
-                is AuthScreenIntent.ChangePhoneNumber -> updateState<AuthScreenState.Unauthenticated, _> {
+                is AuthScreenIntent.ChangePhoneNumber -> updateState<AuthUiState.Unauthenticated, _> {
                     copy(phoneNumber = intent.phoneNumber)
                 }
 
-                is AuthScreenIntent.ChangeConfirmCode -> updateState<AuthScreenState.ConfirmCode, _> {
+                is AuthScreenIntent.ChangeConfirmCode -> updateState<AuthUiState.ConfirmCode, _> {
                     copy(code = intent.code)
                 }
 
-                is AuthScreenIntent.ChangePassword -> updateState<AuthScreenState.Password, _> {
+                is AuthScreenIntent.ChangePassword -> updateState<AuthUiState.Password, _> {
                     copy(password = intent.password)
                 }
 
-                is AuthScreenIntent.EmitEmail -> withState<AuthScreenState.Unauthenticated, _> {
+                is AuthScreenIntent.EmitEmail -> withState<AuthUiState.Unauthenticated, _> {
                     emitEmail(phoneNumber)
                 }
 
-                is AuthScreenIntent.EmitUsername -> withState<AuthScreenState.Unauthenticated, _> {
+                is AuthScreenIntent.EmitUsername -> withState<AuthUiState.Unauthenticated, _> {
                     emitPhoneNumber(phoneNumber)
                 }
 
-                is AuthScreenIntent.EmitPhoneNumber -> withState<AuthScreenState.Unauthenticated, _> {
+                is AuthScreenIntent.EmitPhoneNumber -> withState<AuthUiState.Unauthenticated, _> {
                     emitPhoneNumber(phoneNumber)
                 }
 
-                is AuthScreenIntent.EmitConfirmCode -> withState<AuthScreenState.ConfirmCode, _> {
+                is AuthScreenIntent.EmitConfirmCode -> withState<AuthUiState.ConfirmCode, _> {
                     emitConfirmCode(code)
                 }
 
-                is AuthScreenIntent.EmitPassword -> withState<AuthScreenState.Password, _> {
+                is AuthScreenIntent.EmitPassword -> withState<AuthUiState.Password, _> {
                     emitPassword(password)
                 }
             }
@@ -116,7 +116,7 @@ class AuthDefaultViewModel(private val client: Client) : ViewModel(), AuthViewMo
     }
 
     private fun Ctx.emitEmail(email: String) = viewModelScope.launch {
-        updateState<AuthScreenState.Unauthenticated, _> {
+        updateState<AuthUiState.Unauthenticated, _> {
             copy(loading = true)
         }
 
@@ -125,19 +125,19 @@ class AuthDefaultViewModel(private val client: Client) : ViewModel(), AuthViewMo
         result.onError { error ->
             when (error) {
                 LogInError.AlreadyLogInned -> {}
-                LogInError.UserForSpecifiedAuthMethodNotFound -> updateState<AuthScreenState.Unauthenticated, _> {
+                LogInError.UserForSpecifiedAuthMethodNotFound -> updateState<AuthUiState.Unauthenticated, _> {
                     copy(invalidEmails = invalidEmails + email)
                 }
             }
         }
 
-        updateState<AuthScreenState.Unauthenticated, _> {
+        updateState<AuthUiState.Unauthenticated, _> {
             copy(loading = false)
         }
     }
 
     private fun Ctx.emitPhoneNumber(phoneNumber: String) = viewModelScope.launch {
-        updateState<AuthScreenState.Unauthenticated, _> {
+        updateState<AuthUiState.Unauthenticated, _> {
             copy(loading = true)
         }
 
@@ -146,13 +146,13 @@ class AuthDefaultViewModel(private val client: Client) : ViewModel(), AuthViewMo
         result.onError { error ->
             when (error) {
                 LogInError.AlreadyLogInned -> {}
-                LogInError.UserForSpecifiedAuthMethodNotFound -> updateState<AuthScreenState.Unauthenticated, _> {
+                LogInError.UserForSpecifiedAuthMethodNotFound -> updateState<AuthUiState.Unauthenticated, _> {
                     copy(invalidPhoneNumbers = invalidPhoneNumbers + phoneNumber)
                 }
             }
         }
 
-        updateState<AuthScreenState.Unauthenticated, _> {
+        updateState<AuthUiState.Unauthenticated, _> {
             copy(loading = false)
         }
     }

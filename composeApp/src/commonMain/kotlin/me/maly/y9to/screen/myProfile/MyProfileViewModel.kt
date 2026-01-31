@@ -4,5 +4,5 @@ import pro.respawn.flowmvi.api.Store
 
 
 interface MyProfileViewModel {
-    val store: Store<MyProfileScreenState, MyProfileScreenIntent, Nothing>
+    val store: Store<MyProfileUiState, MyProfileScreenIntent, Nothing>
 }

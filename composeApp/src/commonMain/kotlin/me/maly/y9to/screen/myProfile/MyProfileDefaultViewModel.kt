@@ -16,15 +16,15 @@ import y9to.sdk.Client
 
 
 class MyProfileDefaultViewModel(private val client: Client) : ViewModel(), MyProfileViewModel {
-    override val store = store<MyProfileScreenState, MyProfileScreenIntent, Nothing>(
-        MyProfileScreenState.Loading,
+    override val store = store<MyProfileUiState, MyProfileScreenIntent, Nothing>(
+        MyProfileUiState.Loading,
         viewModelScope
     ) {
         whileSubscribed {
             client.user.myProfile.collect { myProfile ->
                 if (myProfile == null) {
                     updateState {
-                        MyProfileScreenState.Error("Unauthenticated")
+                        MyProfileUiState.Error("Unauthenticated")
                     }
                     return@collect
                 }
@@ -41,9 +41,9 @@ class MyProfileDefaultViewModel(private val client: Client) : ViewModel(), MyPro
 
                 updateState {
                     when (this) {
-                        is MyProfileScreenState.Content -> copy(myProfile = myProfile)
-                        is MyProfileScreenState.Error,
-                        is MyProfileScreenState.Loading -> MyProfileScreenState.View(myProfile)
+                        is MyProfileUiState.Content -> copy(myProfile = myProfile)
+                        is MyProfileUiState.Error,
+                        is MyProfileUiState.Loading -> MyProfileUiState.View(myProfile)
                     }
                 }
             }
@@ -51,8 +51,8 @@ class MyProfileDefaultViewModel(private val client: Client) : ViewModel(), MyPro
 
         reduce { intent ->
             when (intent) {
-                is MyProfileScreenIntent.EnterEditMode -> updateState<MyProfileScreenState.View, _> {
-                    MyProfileScreenState.Edit(
+                is MyProfileScreenIntent.EnterEditMode -> updateState<MyProfileUiState.View, _> {
+                    MyProfileUiState.Edit(
                         myProfile = myProfile,
                         firstName = myProfile.firstName,
                         lastName = myProfile.lastName,
@@ -61,7 +61,7 @@ class MyProfileDefaultViewModel(private val client: Client) : ViewModel(), MyPro
                     )
                 }
 
-                is MyProfileScreenIntent.Edit -> updateState<MyProfileScreenState.Edit, _> {
+                is MyProfileScreenIntent.Edit -> updateState<MyProfileUiState.Edit, _> {
                     copy(
                         firstName = intent.firstName.getOrElse { firstName },
                         lastName = intent.lastName.getOrElse { lastName },
@@ -70,7 +70,7 @@ class MyProfileDefaultViewModel(private val client: Client) : ViewModel(), MyPro
                     )
                 }
 
-                is MyProfileScreenIntent.ExitEditMode -> updateState<MyProfileScreenState.Edit, _> {
+                is MyProfileScreenIntent.ExitEditMode -> updateState<MyProfileUiState.Edit, _> {
                     viewModelScope.launch {
                         client.user.editMe(
                             firstName = firstName.presentIfDiffers(myProfile.firstName),
@@ -80,7 +80,7 @@ class MyProfileDefaultViewModel(private val client: Client) : ViewModel(), MyPro
                         )
                     }
 
-                    MyProfileScreenState.View(
+                    MyProfileUiState.View(
                         myProfile.copy(
                             firstName = firstName,
                             lastName = lastName,
@@ -88,6 +88,10 @@ class MyProfileDefaultViewModel(private val client: Client) : ViewModel(), MyPro
                             birthday = birthday,
                         )
                     )
+                }
+
+                MyProfileScreenIntent.LogOut -> {
+                    client.auth.logOut()
                 }
             }
         }

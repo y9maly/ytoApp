@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import me.maly.y9to.types.UiPostContent
@@ -17,18 +19,18 @@ import me.maly.y9to.types.UiPostContent
 fun PostContent(
     content: UiPostContent,
     modifier: Modifier = Modifier,
-    gotoAuthorProfile: () -> Unit = {},
-    gotoProfile: (String) -> Unit = {},
-    gotoPostDetails: (String) -> Unit = {},
+    gotoPostDetails: ((String) -> Unit)? = null,
 ) {
+    val gotoPostDetails by rememberUpdatedState(gotoPostDetails)
+
     when (content) {
         is UiPostContent.Standalone -> PostContent(content, modifier)
 
         is UiPostContent.Repost -> PostContent(content, modifier,
-            gotoOriginalPostDetails = {
-                gotoPostDetails(content.originalPreview.idOrNull ?: return@PostContent)
-            },
-            gotoOriginalPostAuthorProfile = gotoAuthorProfile,
+            gotoOriginalPostDetails = gotoPostDetails?.let { {
+                it(content.originalPreview.idOrNull ?: return@let)
+            } },
+            gotoPostDetails = gotoPostDetails,
         )
     }
 }
@@ -45,8 +47,8 @@ fun PostContent(
 fun PostContent(
     content: UiPostContent.Repost,
     modifier: Modifier = Modifier,
-    gotoOriginalPostAuthorProfile: () -> Unit = {},
-    gotoOriginalPostDetails: () -> Unit = {},
+    gotoOriginalPostDetails: (() -> Unit)? = null,
+    gotoPostDetails: ((String) -> Unit)? = null,
 ) = Column(modifier) {
     val comment = content.comment
 
@@ -55,13 +57,18 @@ fun PostContent(
 
     Spacer(Modifier.height(6.dp))
 
-    OutlinedCard {
+    OutlinedCard(
+        onClick = {
+            gotoOriginalPostDetails?.invoke()
+        },
+    ) {
         RepostPreview(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 12.dp)
                 .padding(vertical = 8.dp),
             preview = content.originalPreview,
+            gotoPostDetails = gotoPostDetails,
         )
     }
 }

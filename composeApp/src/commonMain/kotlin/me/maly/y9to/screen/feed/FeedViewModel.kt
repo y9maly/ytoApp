@@ -12,7 +12,7 @@ interface FeedViewModel {
     val profile: Flow<UiMyProfile?> // null if unauthenticated
     val header: FeedHeaderComponent
     val pagerFlow: Flow<PagingData<UiPost>>
-    val newPosts: SnapshotStateList<UiPost>
+    val prependPosts: SnapshotStateList<UiPost>
 
     val prePublishPreviews: SnapshotStateList<UiPostPrePublishPreview>
 
@@ -20,5 +20,5 @@ interface FeedViewModel {
 }
 
 interface FeedHeaderComponent {
-    val state: StateFlow<FeedHeaderState>
+    val state: StateFlow<FeedHeaderUiState>
 }
