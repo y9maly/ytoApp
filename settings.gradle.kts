@@ -48,3 +48,35 @@ include(":app:android")
 include(":app:web")
 include(":app:desktop")
 include(":composeApp")
+
+include("domain") {
+    "types"()
+
+    "store" {
+        "preferences"()
+        "auth"()
+    }
+
+    "repository" {
+        "preferences"()
+        "auth"()
+        "myProfile"()
+        "feed"()
+    }
+
+    "workers" {
+        "preferences"()
+    }
+}
+
+include("feature") {
+    "myProfile" {
+        "repository"()
+        "viewModel"()
+        "compose"()
+    }
+}
+
+include("libs") {
+    "preferences"()
+}

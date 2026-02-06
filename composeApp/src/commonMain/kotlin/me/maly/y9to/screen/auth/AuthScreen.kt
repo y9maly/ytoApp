@@ -109,10 +109,6 @@ fun AuthScreen(
                     },
                 )
             }
-
-            is AuthUiState.Authorized -> {
-                AuthenticatedScreen(Modifier.fillMaxSize(), "${state.firstName} ${state.lastName ?: ""}")
-            }
         }
     }
 

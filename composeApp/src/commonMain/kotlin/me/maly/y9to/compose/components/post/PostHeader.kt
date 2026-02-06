@@ -44,6 +44,7 @@ fun PostHeader(
     isRepost: Boolean,
     terminateAction: UiPostTerminateAction?,
     modifier: Modifier = Modifier,
+    menu: @Composable () -> Unit = {},
 ) = Row(
     modifier = modifier
         .height(IntrinsicSize.Min),
@@ -91,6 +92,10 @@ fun PostHeader(
             }
 
             Text(" • ${publishLocalDate.formatToString()}", fontSize = 14.sp)
+
+            Spacer(Modifier.weight(1f))
+
+            menu()
         }
 
         when (terminateAction) {

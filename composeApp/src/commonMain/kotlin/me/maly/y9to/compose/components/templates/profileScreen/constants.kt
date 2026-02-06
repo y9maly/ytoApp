@@ -21,8 +21,8 @@ internal val avatarAlignment = Alignment { size, space, _ ->
     )
 }
 
-internal val collapsedCoverHeight = 90.dp
-internal val collapsedAvatarSize = 70.dp
+internal val collapsedCoverHeight = 75.dp
+internal val collapsedAvatarSize = 60.dp
 internal val collapsedAvatarAlignment = Alignment { size, space, _ ->
     IntOffset(
         x = 0,

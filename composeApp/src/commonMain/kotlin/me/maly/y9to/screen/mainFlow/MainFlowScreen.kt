@@ -166,8 +166,8 @@ fun MainFlowScreen(
                         Tab.MyProfile -> {
                             val state = rememberMyProfileScreenState()
 
-                            DisposableEffect(state.editing) {
-                                profileEditing = state.editing
+                            DisposableEffect(state.editMode) {
+                                profileEditing = state.editMode
                                 onDispose { profileEditing = false }
                             }
 

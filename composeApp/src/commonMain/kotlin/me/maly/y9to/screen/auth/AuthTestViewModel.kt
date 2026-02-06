@@ -127,12 +127,7 @@ private fun testStore() = store<AuthUiState, AuthScreenIntent, AuthScreenAction>
 
                 if (password.length <= 3)
                     copy(loading = false, invalidPasswords = invalidPasswords + password)
-                else
-                    AuthUiState.Authorized(
-                        firstName = "First name",
-                        lastName = password,
-                        loading = false,
-                    )
+                this
             }
         }
     }

@@ -72,11 +72,14 @@ fun TemplateProfileScreen(
                 avatar = avatar,
                 coverOverlay = coverOverlay,
                 avatarOverlay = avatarOverlay,
-                displayName = HeaderDefaults.displayNameWithEdit(
-                    string = displayName,
-                    editable = canChangeFullName,
-                    onEdit = onChangeFullName
-                ),
+                displayName = {
+                    HeaderDefaults.DisplayName(
+                        string = displayName,
+                        canEdit = canChangeFullName,
+                        onEdit = onChangeFullName,
+                        collapsedFraction = it,
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
             )
         }

@@ -19,18 +19,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
+import coil3.ImageLoader
+import coil3.compose.setSingletonImageLoaderFactory
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
+import me.maly.y9to.compose.fileImageRequests
 import me.maly.y9to.di.navigation.appNavigationModule
+import me.maly.y9to.di.repository.repositoryModule
 import me.maly.y9to.di.sdk.appSdkModule
 import org.koin.compose.KoinApplication
+import org.koin.compose.koinInject
 import org.koin.core.module.Module
+import y9to.sdk.Client
 
 
 private fun modules() = GlobalScope.async {
     Module().apply {
-        includes(appNavigationModule)
         includes(appSdkModule())
+        includes(repositoryModule)
+        includes(appNavigationModule)
     }
 }
 
@@ -68,6 +75,17 @@ fun App() {
             KoinApplication({
                 modules(modules)
             }) {
+
+                // todo временно
+                val client: Client = koinInject()
+                setSingletonImageLoaderFactory { context ->
+                    ImageLoader.Builder(context)
+                        .components {
+                            fileImageRequests(client)
+                        }
+                        .build()
+                }
+
                 Scaffold {
                     AppContent(Modifier.fillMaxSize())
                 }

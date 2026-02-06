@@ -17,6 +17,11 @@ interface FeedViewModel {
     val prePublishPreviews: SnapshotStateList<UiPostPrePublishPreview>
 
     fun publish(content: UiInputPostContent)
+
+    fun canEdit(post: UiPost): Flow<Boolean>
+    fun canDelete(post: UiPost): Flow<Boolean>
+    fun canReply(post: UiPost): Flow<Boolean>
+    fun canRepost(post: UiPost): Flow<Boolean>
 }
 
 interface FeedHeaderComponent {

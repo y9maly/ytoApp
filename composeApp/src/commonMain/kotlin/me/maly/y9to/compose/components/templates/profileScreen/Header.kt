@@ -7,6 +7,7 @@ import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.EaseInQuad
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -23,6 +24,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawWithCache
@@ -52,6 +54,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toOffset
 import androidx.compose.ui.util.lerp
 import androidx.constraintlayout.compose.ExperimentalMotionApi
+import me.maly.y9to.compose.EmptyContentPadding
+import me.maly.y9to.compose.dropBottom
 import me.maly.y9to.compose.size
 import org.jetbrains.compose.resources.painterResource
 import y9to.composeapp.generated.resources.Res
@@ -146,8 +150,8 @@ private fun MeasureScope.collapsed(
     constraints: Constraints,
     namePlaceable: Placeable,
 ): HeaderLayout {
-    val avatarStartOffset = 8.dp.toPx()
-    val nameStartOffset = 8.dp.toPx()
+    val avatarStartOffset = 12.dp.toPx()
+    val nameStartOffset = 12.dp.toPx()
 
     val avatarSize = collapsedAvatarSize.toPx().let { Size(it, it) }
 
@@ -179,8 +183,8 @@ private fun MeasureScope.collapsed(
         avatarSize = avatarSize,
         coverOffset = Offset.Zero,
         coverSize = coverSize,
-        coverDim = .6f,
-        coverBlur = 12.dp,
+        coverDim = .75f,
+        coverBlur = 24.dp,
         cutOffset = cutOffset,
         cutSize = cutSize,
         cutAlpha = 0f,
@@ -207,21 +211,14 @@ private fun lerp(start: HeaderLayout, end: HeaderLayout, fraction: Float): Heade
 }
 
 internal object HeaderDefaults {
-    fun displayName(string: String): @Composable (collapsedFraction: Float) -> Unit = { collapsedFraction ->
-        Text(
-            text = string,
-            fontSize = 21.sp,
-            fontWeight = FontWeight.Medium,
-            color = lerp(colorScheme.onSurface, Color.White, collapsedFraction)
-        )
-    }
-
-    fun displayNameWithEdit(
+    @Composable
+    fun DisplayName(
         string: String,
-        editable: Boolean,
-        onEdit: () -> Unit
-    ): @Composable (collapsedFraction: Float) -> Unit = { collapsedFraction ->
-        Row(Modifier.height(30.dp), verticalAlignment = Alignment.CenterVertically) {
+        collapsedFraction: Float,
+        canEdit: Boolean,
+        onEdit: () -> Unit,
+    ) {
+        Row(Modifier.height(30.dp), verticalAlignment = CenterVertically) {
             Text(
                 text = string,
                 fontSize = 21.sp,
@@ -229,7 +226,7 @@ internal object HeaderDefaults {
                 color = lerp(colorScheme.onSurface, Color.White, collapsedFraction)
             )
 
-            AnimatedVisibility(editable, Modifier.align(Alignment.CenterVertically)) {
+            AnimatedVisibility(canEdit, Modifier.align(CenterVertically)) {
                 Row {
                     Spacer(Modifier.width(4.dp))
 
@@ -252,8 +249,9 @@ internal fun Header(
     avatarOverlay: AvatarOverlay,
     displayName: @Composable (collapsedFraction: Float) -> Unit,
     modifier: Modifier = Modifier,
-    expandedHeight: Dp = 220.dp,
+    expandedHeight: Dp = 260.dp,
     collapsedHeight: Dp = 64.dp,
+    contentPadding: PaddingValues = EmptyContentPadding,
 ) {
     SubcomposeLayout(modifier) { constraints ->
         val collapsedFraction = scrollBehavior.state.heightOffset / scrollBehavior.state.heightOffsetLimit
@@ -293,6 +291,7 @@ internal fun Header(
                             offset = current.cutOffset
                         ),
                     cover,
+                    contentPadding.dropBottom(),
                 )
 
                 Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = current.coverDim)))

@@ -23,15 +23,6 @@ plugins {
 kotlin {
     applyDefaultHierarchyTemplate {
         common {
-            group("nonWasmWasi") {
-                withCompilations {
-                    val target = it.target
-                    target.platformType != KotlinPlatformType.wasm ||
-                    target !is KotlinJsIrTarget ||
-                    target.wasmTargetType != KotlinWasmTargetType.WASI
-                }
-            }
-
             group("nonJvm") {
                 withCompilations {
                     val target = it.target
@@ -45,18 +36,19 @@ kotlin {
                     it.target !is KotlinAndroidTarget
                 }
             }
+
+            group("nonMacosArm64") {
+                withJvm()
+                withAndroidTarget()
+                withJs()
+                withWasmJs()
+                withIos()
+            }
         }
     }
 
-    macosArm64().apply {
-        binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
-
-            freeCompilerArgs += listOf(
-                "-g", // debug symbols
-            )
-        }
+    jvm {
+        compilerOptions.jvmTarget = JvmTarget.JVM_11
     }
 
     androidLibrary {
@@ -72,18 +64,6 @@ kotlin {
         }
     }
 
-    listOf(
-        iosArm64(),
-        iosSimulatorArm64()
-    ).forEach { iosTarget ->
-        iosTarget.binaries.framework {
-            baseName = "ComposeApp"
-            isStatic = true
-        }
-    }
-
-    jvm()
-
     js {
         browser()
         binaries.executable()
@@ -95,11 +75,37 @@ kotlin {
         binaries.executable()
     }
 
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach { iosTarget ->
+        iosTarget.binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = true
+        }
+    }
+
+    macosArm64().apply {
+        binaries.framework {
+            baseName = "ComposeApp"
+            isStatic = true
+
+            freeCompilerArgs += listOf(
+                "-g", // debug symbols
+            )
+        }
+    }
+
     sourceSets {
+        val nonMacosArm64Main by named("nonMacosArm64Main")
+
+        androidMain.get().dependsOn(nonMacosArm64Main)
+
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)
         }
+
         commonMain.dependencies {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
@@ -125,23 +131,31 @@ kotlin {
             implementation("androidx.collection:collection:1.5.0")
             implementation("androidx.lifecycle:lifecycle-runtime-compose:2.10.0")
 
+            implementation("me.maly.y9to:io:1.0-SNAPSHOT")
             implementation("me.maly.y9to:sdk:1.0-SNAPSHOT")
             implementation("me.maly.y9to:api-types:1.0-SNAPSHOT")
             implementation("me.maly.y9to:api-inputs:1.0-SNAPSHOT")
             implementation("me.maly.y9to:api-results:1.0-SNAPSHOT")
+
+            implementation(libs.molecule.runtime)
+            implementation(libs.filekit.core)
+            implementation(libs.filekit.dialogs)
+            implementation(libs.coil.compose)
+            implementation(project(":domain:types"))
+            implementation(project(":domain:repository:auth"))
+            implementation(project(":domain:repository:myProfile"))
+            implementation(project(":domain:repository:feed"))
         }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-        }
+
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
         }
-    }
-}
 
-dependencies {
-//    debugImplementation(libs.compose.uiTooling)
+        nonMacosArm64Main.dependencies {
+            implementation(libs.filekit.dialogs.compose)
+        }
+    }
 }
 
 compose.desktop {

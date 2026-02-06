@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,12 +42,15 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LookaheadScope
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInParent
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import me.maly.y9to.compose.components.post.PostCard
+import me.maly.y9to.compose.detectMouseSecondaryGestures
 import me.maly.y9to.types.UiPost
+import org.jetbrains.compose.resources.painterResource
+import y9to.composeapp.generated.resources.Res
+import y9to.composeapp.generated.resources.more_vertical
 
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -62,6 +66,7 @@ fun FeedColumn(
     listItems: LazyListScope.(items: () -> Unit) -> Unit = { it() },
 ) {
     val gotoPostDetails by rememberUpdatedState(gotoPostDetails)
+    val openDropdownMenu by rememberUpdatedState(openDropdownMenu)
 
     LookaheadScope {
         LazyColumn(
@@ -98,10 +103,12 @@ fun FeedColumn(
                             .onGloballyPositioned {
                                 positionInList = it.toLookaheadCoordinates().positionInParent()
                             }
-//                            .onRightClick { position ->
-//                                val listPosition = positionInList + position
-//                                openDropdownMenu?.invoke(item, listPosition)
-//                            }
+                            .pointerInput(Unit) {
+                                detectMouseSecondaryGestures { position ->
+                                    val listPosition = positionInList + position
+                                    openDropdownMenu?.invoke(item, listPosition)
+                                }
+                            }
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onLongPress = { position ->
@@ -110,6 +117,25 @@ fun FeedColumn(
                                     }
                                 )
                             },
+                        menu = {
+                            var menuPosition by remember { mutableStateOf(Offset.Zero) }
+
+                            Icon(
+                                painterResource(Res.drawable.more_vertical),
+                                null,
+                                Modifier
+                                    .onGloballyPositioned {
+                                        menuPosition = it.toLookaheadCoordinates().positionInParent()
+                                    }
+                                    .pointerInput(Unit) {
+                                        detectTapGestures { position ->
+                                            val listPosition = positionInList + menuPosition + position
+                                            openDropdownMenu?.invoke(item, listPosition)
+                                        }
+                                    }
+                                    .padding(4.dp)
+                            )
+                        },
                         onClick = { gotoPostDetails?.invoke(item.id) },
                         gotoPostDetails = gotoPostDetails
                     )

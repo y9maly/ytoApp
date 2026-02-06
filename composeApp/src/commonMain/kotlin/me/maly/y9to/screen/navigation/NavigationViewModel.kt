@@ -4,18 +4,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
-import y9to.api.types.AuthState
-import y9to.sdk.Client
+import me.maly.y9to.repository.AuthInfoRepository
+import me.maly.y9to.repository.isAuthenticated
 
 
 interface NavigationViewModel {
     val isAuthenticated: Flow<Boolean>
 }
 
-class NavigationDefaultViewModel(private val client: Client) : ViewModel(), NavigationViewModel {
-    override val isAuthenticated = client.auth.authState
-        .map { it is AuthState.Authorized }
+class NavigationDefaultViewModel(
+    private val authInfoRepository: AuthInfoRepository,
+) : ViewModel(), NavigationViewModel {
+    override val isAuthenticated = authInfoRepository.isAuthenticated
         .shareIn(viewModelScope, SharingStarted.Eagerly, 1)
 }

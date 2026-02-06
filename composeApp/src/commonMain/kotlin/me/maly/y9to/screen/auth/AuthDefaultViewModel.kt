@@ -3,6 +3,8 @@ package me.maly.y9to.screen.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
+import me.maly.y9to.repository.AuthInfoRepository
+import me.maly.y9to.repository.AuthRepository
 import pro.respawn.flowmvi.api.PipelineContext
 import pro.respawn.flowmvi.dsl.store
 import pro.respawn.flowmvi.dsl.updateState
@@ -13,14 +15,15 @@ import y9to.api.types.AuthState
 import y9to.api.types.InputAuthMethod
 import y9to.api.types.LogInError
 import y9to.libs.stdlib.coroutines.flow.collectIn
-import y9to.libs.stdlib.coroutines.flow.firstNotNull
-import y9to.sdk.Client
 
 
 private typealias Ctx = PipelineContext<AuthUiState, AuthScreenIntent, AuthScreenAction>
 
 
-class AuthDefaultViewModel(private val client: Client) : ViewModel(), AuthViewModel {
+class AuthDefaultViewModel(
+    private val authInfoRepository: AuthInfoRepository,
+    private val authRepository: AuthRepository,
+) : ViewModel(), AuthViewModel {
     override val store = store<AuthUiState, AuthScreenIntent, AuthScreenAction>(
         AuthUiState.Unauthenticated(
             phoneNumberAvailable = true,
@@ -37,17 +40,10 @@ class AuthDefaultViewModel(private val client: Client) : ViewModel(), AuthViewMo
         viewModelScope
     ) {
         whileSubscribed {
-            client.auth.authState.collectIn(viewModelScope) { authState ->
+            authInfoRepository.authState.collectIn(viewModelScope) { authState ->
                 when (authState) {
                     is AuthState.Authorized -> {
-                        val me = client.user.myProfile.firstNotNull()
-                        updateState {
-                            AuthUiState.Authorized(
-                                firstName = me.firstName,
-                                lastName = me.lastName,
-                                loading = false
-                            )
-                        }
+                        // do nothing
                     }
 
                     AuthState.Unauthorized -> {
@@ -120,7 +116,7 @@ class AuthDefaultViewModel(private val client: Client) : ViewModel(), AuthViewMo
             copy(loading = true)
         }
 
-        val result = client.auth.logIn(InputAuthMethod.Email(email))
+        val result = authRepository.logIn(InputAuthMethod.Email(email))
 
         result.onError { error ->
             when (error) {
@@ -141,7 +137,7 @@ class AuthDefaultViewModel(private val client: Client) : ViewModel(), AuthViewMo
             copy(loading = true)
         }
 
-        val result = client.auth.logIn(InputAuthMethod.PhoneNumber(phoneNumber))
+        val result = authRepository.logIn(InputAuthMethod.PhoneNumber(phoneNumber))
 
         result.onError { error ->
             when (error) {

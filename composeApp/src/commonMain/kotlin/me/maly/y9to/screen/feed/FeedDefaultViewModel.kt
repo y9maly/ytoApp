@@ -3,56 +3,68 @@ package me.maly.y9to.screen.feed
 import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingSource
 import androidx.paging.cachedIn
-import kotlinx.coroutines.CancellationException
+import androidx.paging.map
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.launch
+import me.maly.y9to.compose.FileImageRequest
+import me.maly.y9to.repository.AuthInfoRepository
+import me.maly.y9to.repository.CreatePostRepository
+import me.maly.y9to.repository.FeedRepository
+import me.maly.y9to.repository.MyProfileRepository
+import me.maly.y9to.repository.isAuthenticated
 import me.maly.y9to.types.UiMyProfile
 import me.maly.y9to.types.UiPost
 import me.maly.y9to.types.UiPostAuthorPreview
 import me.maly.y9to.types.UiPostContent
 import me.maly.y9to.viewModel.map
-import y9to.api.types.AuthState
 import y9to.api.types.InputPostContent
-import y9to.libs.stdlib.PagingKey
-import y9to.libs.stdlib.SpliceKey
 import y9to.libs.stdlib.coroutines.flow.collectIn
 import y9to.libs.stdlib.successOrElse
-import y9to.sdk.Client
-import y9to.sdk.types.FeedPagingOptions
 import kotlin.time.Clock
 
 
-class FeedDefaultViewModel(private val client: Client) : ViewModel(), FeedViewModel {
-    override val profile = client.user.myProfile.map {
-        it ?: return@map null
+class FeedDefaultViewModel(
+    private val authInfoRepository: AuthInfoRepository,
+    private val myProfileRepository: MyProfileRepository,
+    private val feedRepository: FeedRepository,
+    private val createPostRepository: CreatePostRepository,
+) : ViewModel(), FeedViewModel {
+    override val profile = myProfileRepository.myProfile.map { myProfile ->
+        if (myProfile == null)
+            return@map null
 
         UiMyProfile(
-            userId = it.id.long.toString(),
-            firstName = it.firstName,
-            lastName = it.lastName,
-            phoneNumber = it.phoneNumber,
-            email = it.email,
-            bio = it.bio,
-            birthday = it.birthday,
+            userId = myProfile.id.long.toString(),
+            firstName = myProfile.firstName,
+            lastName = myProfile.lastName,
+            cover = myProfile.cover?.let { FileImageRequest(it) },
+            avatar = myProfile.avatar?.let { FileImageRequest(it) },
+            phoneNumber = myProfile.phoneNumber,
+            email = myProfile.email,
+            bio = myProfile.bio,
+            birthday = myProfile.birthday,
         )
     }.shareIn(viewModelScope, SharingStarted.Eagerly, 1)
 
-    override val header = FeedHeaderDefaultComponent(viewModelScope, client)
+    override val header = FeedHeaderDefaultComponent(viewModelScope, authInfoRepository, myProfileRepository)
 
-    override val pagerFlow = Pager(PagingConfig(pageSize = 5)) {
-        FeedSource(client)
-    }.flow.cachedIn(viewModelScope)
+    override val pagerFlow = feedRepository.createPager()
+        .flow
+        .map { pagingData ->
+            pagingData.map { post ->
+                post.map()
+            }
+        }
+        .cachedIn(viewModelScope)
 
     override val prependPosts = mutableStateListOf<UiPost>()
 
@@ -70,8 +82,9 @@ class FeedDefaultViewModel(private val client: Client) : ViewModel(), FeedViewMo
         ).also { prePublishPreviews.add(it) }
 
         val addAuthorPreview = launch {
-            val me = client.user.myProfile.first()
+            val me = myProfileRepository.myProfile.first()
                 ?: return@launch
+
             prePublishPreview = prePublishPreviews.replace(prePublishPreview, prePublishPreview.copy(
                 UiPostAuthorPreview.User(
                     id = me.id.long.toString(),
@@ -81,7 +94,7 @@ class FeedDefaultViewModel(private val client: Client) : ViewModel(), FeedViewMo
             )) ?: return@launch
         }
 
-        val post = client.post.create(
+        val post = createPostRepository.create(
             replyTo = null,
             content = when (content) {
                 is UiInputPostContent.Standalone -> InputPostContent.Standalone(content.text)
@@ -100,6 +113,28 @@ class FeedDefaultViewModel(private val client: Client) : ViewModel(), FeedViewMo
         prependPosts.add(0, post.map())
     }.run {}
 
+    override fun canEdit(post: UiPost): Flow<Boolean> = isAuthor(post)
+
+    override fun canDelete(post: UiPost): Flow<Boolean> = isAuthor(post)
+
+    private fun isAuthor(post: UiPost) = channelFlow {
+        myProfileRepository.myProfile.collect { myProfile ->
+            if (myProfile == null) {
+                send(false)
+            } else {
+                send(post.author.idOrNull == myProfile.id.long.toString())
+            }
+        }
+    }
+
+    override fun canReply(post: UiPost): Flow<Boolean> {
+        return authInfoRepository.isAuthenticated
+    }
+
+    override fun canRepost(post: UiPost): Flow<Boolean> {
+        return authInfoRepository.isAuthenticated
+    }
+
     private fun <T : Any> MutableList<T>.replace(old: T, new: T): T? {
         val index = indexOf(old)
         if (index == -1) return null
@@ -110,49 +145,21 @@ class FeedDefaultViewModel(private val client: Client) : ViewModel(), FeedViewMo
 
 class FeedHeaderDefaultComponent(
     private val scope: CoroutineScope,
-    private val client: Client,
+    private val authInfoRepository: AuthInfoRepository,
+    private val myProfileRepository: MyProfileRepository,
 ) : FeedHeaderComponent {
     override val state = MutableStateFlow<FeedHeaderUiState>(FeedHeaderUiState.Loading)
 
     init {
-        combine(client.auth.authState, client.user.myProfile) { authState, myProfile ->
-            if (authState is AuthState.Unauthorized) {
+        myProfileRepository.myProfile.collectIn(scope) { myProfile ->
+            if (myProfile == null) {
                 state.value = FeedHeaderUiState.Unauthenticated
-            } else if (myProfile == null) {
-                state.value = FeedHeaderUiState.Loading
             } else {
                 state.value = FeedHeaderUiState.Authenticated(
                     firstName = myProfile.firstName,
                     lastName = myProfile.lastName,
                 )
             }
-        }.collectIn(scope)
-    }
-}
-
-private class FeedSource(private val client: Client) : PagingSource<PagingKey, UiPost>() {
-    override suspend fun load(params: LoadParams<PagingKey>): LoadResult<PagingKey, UiPost> {
-        return try {
-            val pagingKey = params.key
-            val key =
-                if (pagingKey != null) SpliceKey.Continue(pagingKey)
-                else SpliceKey.Initialize(FeedPagingOptions.GlobalFeed())
-            delay(250)
-            val result = client.feed.splice(key, params.loadSize)
-            delay(250)
-
-            LoadResult.Page(
-                data = result.list.map { it.map() },
-                prevKey = pagingKey,
-                nextKey = result.nextPagingKey,
-            )
-        } catch (e: Exception) {
-            if (e is CancellationException) throw e
-            LoadResult.Error(e)
         }
-    }
-
-    override fun getRefreshKey(state: androidx.paging.PagingState<PagingKey, UiPost>): PagingKey? {
-        TODO()
     }
 }

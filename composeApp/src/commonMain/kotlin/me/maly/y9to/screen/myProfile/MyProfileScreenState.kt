@@ -8,7 +8,7 @@ import androidx.compose.runtime.setValue
 
 
 class MyProfileState {
-    var editing by mutableStateOf(false)
+    var editMode by mutableStateOf(false)
 }
 
 @Composable

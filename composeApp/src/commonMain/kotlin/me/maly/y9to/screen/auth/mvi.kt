@@ -38,12 +38,6 @@ sealed interface AuthUiState : MVIState {
         val hint: String?,
         override val loading: Boolean,
     ) : AuthUiState
-
-    data class Authorized(
-        val firstName: String,
-        val lastName: String?,
-        override val loading: Boolean,
-    ) : AuthUiState
 }
 
 sealed interface AuthScreenIntent : MVIIntent {

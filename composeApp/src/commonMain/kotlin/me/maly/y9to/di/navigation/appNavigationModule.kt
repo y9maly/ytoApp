@@ -27,14 +27,14 @@ private inline fun <reified T> Module.vm(crossinline definition: Definition<T>):
 
 val appNavigationModule = module {
     vm<NavigationViewModel> { NavigationDefaultViewModel(get()) }
-    vm<AuthViewModel> { AuthDefaultViewModel(get()) }
-    vm<FeedViewModel> { FeedDefaultViewModel(get()) }
+    vm<AuthViewModel> { AuthDefaultViewModel(get(), get()) }
+    vm<FeedViewModel> { FeedDefaultViewModel(get(), get(), get(), get()) }
     vm<MyProfileViewModel> { MyProfileDefaultViewModel(get()) }
     vm<MainFlowViewModel> { MainFlowDefaultViewModel(get()) }
     vm<PostDetailsViewModel> { params ->
         PostDetailsDefaultViewModel(
-            client = get(),
-            postId = PostId(params.get<String>(0).toLong())
+            postId = PostId(params.get<String>(0).toLong()),
+            viewPostRepository = get(),
         )
     }
 }

@@ -22,6 +22,7 @@ import kotlin.time.Instant
 fun PostCard(
     post: UiPost,
     modifier: Modifier = Modifier,
+    menu: @Composable () -> Unit = {},
     onClick: (() -> Unit)? = null,
     gotoPostDetails: ((postId: String) -> Unit)? = null,
 ) = PostCard(
@@ -30,6 +31,7 @@ fun PostCard(
     lastEditDate = post.lastEditDate,
     content = post.content,
     modifier = modifier,
+    menu = menu,
     onClick = onClick,
     gotoPostDetails = gotoPostDetails,
 )
@@ -41,6 +43,7 @@ fun PostCard(
     lastEditDate: Instant?,
     content: UiPostContent,
     modifier: Modifier = Modifier,
+    menu: @Composable () -> Unit = {},
     onClick: (() -> Unit)? = null,
     gotoPostDetails: ((postId: String) -> Unit)? = null,
 ) {
@@ -48,10 +51,10 @@ fun PostCard(
         modifier = modifier,
         onClick = { onClick?.invoke() },
         elevation = CardDefaults.outlinedCardElevation(
-                defaultElevation = 0.dp,
-                hoveredElevation = 0.dp,
-                pressedElevation = 0.dp,
-                focusedElevation = 0.dp
+            defaultElevation = 0.dp,
+            hoveredElevation = 0.dp,
+            pressedElevation = 0.dp,
+            focusedElevation = 0.dp
         ),
     ) {
         Post(
@@ -60,6 +63,7 @@ fun PostCard(
             lastEditDate = lastEditDate,
             content = content,
             modifier = Modifier.fillMaxWidth().padding(8.dp),
+            menu = menu,
             gotoPostDetails = gotoPostDetails,
         )
     }
@@ -70,6 +74,7 @@ fun PostCard(
 fun Post(
     post: UiPost,
     modifier: Modifier = Modifier,
+    menu: @Composable () -> Unit = {},
     gotoPostDetails: ((postId: String) -> Unit)? = null,
 ) = Post(
     author = post.author,
@@ -77,6 +82,7 @@ fun Post(
     lastEditDate = post.lastEditDate,
     content = post.content,
     modifier = modifier,
+    menu = menu,
     gotoPostDetails = gotoPostDetails,
 )
 
@@ -87,6 +93,7 @@ fun Post(
     lastEditDate: Instant?,
     content: UiPostContent,
     modifier: Modifier = Modifier,
+    menu: @Composable () -> Unit = {},
     gotoPostDetails: ((postId: String) -> Unit)? = null,
 ) = Column(modifier) {
     PostHeader(
@@ -98,6 +105,7 @@ fun Post(
         terminateAction =
             if (lastEditDate != null) UiPostTerminateAction.Edited(lastEditDate)
             else null,
+        menu = menu,
     )
 
     Spacer(Modifier.height(8.dp))

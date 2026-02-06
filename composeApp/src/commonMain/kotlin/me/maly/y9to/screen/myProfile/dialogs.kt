@@ -122,6 +122,29 @@ fun ConfirmLogOutDialog(
     )
 }
 
+@Composable
+fun CantLogOutDialog(
+    visible: Boolean,
+    onDismiss: () -> Unit,
+) {
+    if (!visible) return
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text("Sorry")
+        },
+        text = {
+            Text("Sorry, but you can't log out now")
+        },
+        confirmButton = {
+            OutlinedButton(onClick = onDismiss) {
+                Text("Ok")
+            }
+        },
+    )
+}
+
 
 @Composable
 internal fun LoggingOutDialog(
