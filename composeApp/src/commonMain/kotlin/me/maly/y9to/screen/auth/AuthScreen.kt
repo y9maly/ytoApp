@@ -7,14 +7,17 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
-import pro.respawn.flowmvi.compose.dsl.subscribe
+import me.maly.y9to.viewModel.AuthScreenAction
+import me.maly.y9to.viewModel.AuthUiState
+import me.maly.y9to.viewModel.AuthViewModel
+import me.maly.y9to.viewModel.ConfirmCodeSource
 import pro.respawn.flowmvi.util.typed
 
 
@@ -24,13 +27,15 @@ fun AuthScreen(
     vm: AuthViewModel,
     modifier: Modifier = Modifier,
 ) {
-    val store by rememberUpdatedState(vm.store)
     var dialog by remember { mutableStateOf<String?>(null) }
+    val state by vm.state.collectAsState()
 
-    val state by store.subscribe { action ->
-        when (action) {
-            is AuthScreenAction.ShowDialog -> {
-                dialog = action.text
+    LaunchedEffect(Unit) {
+        vm.actions.collect { action ->
+            when (action) {
+                is AuthScreenAction.ShowDialog -> {
+                    dialog = action.text
+                }
             }
         }
     }
@@ -63,12 +68,12 @@ fun AuthScreen(
                     phoneNumber = phoneNumber,
                     onChangePhoneNumber = {
                         phoneNumber = it
-                        store.intent(AuthScreenIntent.ChangePhoneNumber(phoneNumber.text))
+                        vm.setPhoneNumber(phoneNumber.text)
                     },
                     loading = state.loading,
                     invalidPhoneNumber = phoneNumber.text in state.invalidPhoneNumbers,
                     onEmit = {
-                        store.intent(AuthScreenIntent.EmitPhoneNumber)
+                        vm.emitPhoneNumber()
                     },
                 )
             }
@@ -79,7 +84,7 @@ fun AuthScreen(
                     code = confirmCode,
                     onChangeCode = {
                         confirmCode = it
-                        store.intent(AuthScreenIntent.ChangeConfirmCode(confirmCode.text))
+                        vm.setConfirmCode(it.text)
                     },
                     loading = state.loading,
                     invalidCode = confirmCode.text in state.invalidCodes,
@@ -88,7 +93,7 @@ fun AuthScreen(
                         ConfirmCodeSource.Email -> "Please check your email ans SPAM folder"
                     },
                     onEmit = {
-                        store.intent(AuthScreenIntent.EmitConfirmCode)
+                        vm.emitConfirmCode()
                     },
                 )
             }
@@ -99,13 +104,13 @@ fun AuthScreen(
                     password = password,
                     onChangePassword = {
                         password = it
-                        store.intent(AuthScreenIntent.ChangePassword(password.text))
+                        vm.setPassword(it.text)
                     },
                     hint = state.hint,
                     loading = state.loading,
                     invalidPassword = password.text in state.invalidPasswords,
                     onEmit = {
-                        store.intent(AuthScreenIntent.EmitPassword)
+                        vm.emitPassword()
                     },
                 )
             }

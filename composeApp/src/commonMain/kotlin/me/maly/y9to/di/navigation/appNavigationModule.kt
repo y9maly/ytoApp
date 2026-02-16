@@ -1,22 +1,24 @@
 package me.maly.y9to.di.navigation
 
-import me.maly.y9to.screen.auth.AuthDefaultViewModel
-import me.maly.y9to.screen.auth.AuthViewModel
-import me.maly.y9to.screen.feed.FeedDefaultViewModel
-import me.maly.y9to.screen.feed.FeedViewModel
-import me.maly.y9to.screen.mainFlow.MainFlowDefaultViewModel
-import me.maly.y9to.screen.mainFlow.MainFlowViewModel
-import me.maly.y9to.screen.myProfile.MyProfileDefaultViewModel
-import me.maly.y9to.screen.myProfile.MyProfileViewModel
-import me.maly.y9to.screen.navigation.NavigationDefaultViewModel
-import me.maly.y9to.screen.navigation.NavigationViewModel
-import me.maly.y9to.screen.postDetails.PostDetailsDefaultViewModel
-import me.maly.y9to.screen.postDetails.PostDetailsViewModel
+import me.maly.y9to.viewModel.AuthDefaultViewModel
+import me.maly.y9to.viewModel.AuthViewModel
+import me.maly.y9to.viewModel.FeedDefaultViewModel
+import me.maly.y9to.viewModel.FeedViewModel
+import me.maly.y9to.viewModel.MainFlowDefaultViewModel
+import me.maly.y9to.viewModel.MainFlowViewModel
+import me.maly.y9to.viewModel.MyProfileDefaultViewModel
+import me.maly.y9to.viewModel.MyProfileViewModel
+import me.maly.y9to.viewModel.NavigationDefaultViewModel
+import me.maly.y9to.viewModel.NavigationViewModel
+import me.maly.y9to.viewModel.PostDetailsDefaultViewModel
+import me.maly.y9to.viewModel.PostDetailsViewModel
+import me.maly.y9to.viewModel.ViewProfileDefaultViewModel
+import me.maly.y9to.viewModel.ViewProfileViewModel
 import org.koin.core.definition.Definition
 import org.koin.core.definition.KoinDefinition
 import org.koin.core.module.Module
+import org.koin.core.parameter.parametersOf
 import org.koin.dsl.module
-import y9to.api.types.PostId
 
 
 private inline fun <reified T> Module.vm(crossinline definition: Definition<T>): KoinDefinition<T> {
@@ -28,13 +30,19 @@ private inline fun <reified T> Module.vm(crossinline definition: Definition<T>):
 val appNavigationModule = module {
     vm<NavigationViewModel> { NavigationDefaultViewModel(get()) }
     vm<AuthViewModel> { AuthDefaultViewModel(get(), get()) }
-    vm<FeedViewModel> { FeedDefaultViewModel(get(), get(), get(), get()) }
+    vm<FeedViewModel> { FeedDefaultViewModel(get(), get(), get(), get(), get()) }
     vm<MyProfileViewModel> { MyProfileDefaultViewModel(get()) }
     vm<MainFlowViewModel> { MainFlowDefaultViewModel(get()) }
     vm<PostDetailsViewModel> { params ->
         PostDetailsDefaultViewModel(
-            postId = PostId(params.get<String>(0).toLong()),
+            uiPostId = params[0],
             viewPostRepository = get(),
+        )
+    }
+    vm<ViewProfileViewModel> { params ->
+        ViewProfileDefaultViewModel(
+            uiUserId = params[0],
+            repository = get(),
         )
     }
 }

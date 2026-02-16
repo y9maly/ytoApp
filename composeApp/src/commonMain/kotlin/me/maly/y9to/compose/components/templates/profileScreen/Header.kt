@@ -54,9 +54,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toOffset
 import androidx.compose.ui.util.lerp
 import androidx.constraintlayout.compose.ExperimentalMotionApi
-import me.maly.y9to.compose.EmptyContentPadding
-import me.maly.y9to.compose.dropBottom
-import me.maly.y9to.compose.size
+import me.maly.y9to.compose.utils.EmptyContentPadding
+import me.maly.y9to.compose.utils.dropBottom
+import me.maly.y9to.compose.utils.size
 import org.jetbrains.compose.resources.painterResource
 import y9to.composeapp.generated.resources.Res
 import y9to.composeapp.generated.resources.edit

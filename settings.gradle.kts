@@ -51,32 +51,9 @@ include(":composeApp")
 
 include("domain") {
     "types"()
-
-    "store" {
-        "preferences"()
-        "auth"()
-    }
-
-    "repository" {
-        "preferences"()
-        "auth"()
-        "myProfile"()
-        "feed"()
-    }
-
-    "workers" {
-        "preferences"()
-    }
+    "store" {}
+    "repository" {}
+    "workers" {}
 }
 
-include("feature") {
-    "myProfile" {
-        "repository"()
-        "viewModel"()
-        "compose"()
-    }
-}
-
-include("libs") {
-    "preferences"()
-}
+include("libs") {}

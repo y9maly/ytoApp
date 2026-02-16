@@ -21,10 +21,13 @@ import me.maly.y9to.navigation.destination.Destination
 import me.maly.y9to.navigation.destination.FeedDestination
 import me.maly.y9to.navigation.destination.MainFlowDestination
 import me.maly.y9to.navigation.destination.PostDetailsDestination
+import me.maly.y9to.navigation.destination.ViewProfileDestination
 import me.maly.y9to.screen.auth.AuthScreen
 import me.maly.y9to.screen.feed.FeedScreen
 import me.maly.y9to.screen.mainFlow.MainFlowScreen
 import me.maly.y9to.screen.postDetails.PostDetailsScreen
+import me.maly.y9to.screen.viewProfile.ViewProfileScreen
+import me.maly.y9to.viewModel.NavigationViewModel
 import org.koin.core.parameter.parametersOf
 
 
@@ -73,6 +76,8 @@ private fun EntryProviderScope<Destination>.navigationEntries(
             backStack.add(AuthDestination)
         }, navigatePostDetails = {
             backStack.add(PostDetailsDestination(it))
+        }, navigateProfile = {
+            backStack.add(ViewProfileDestination(it))
         }, modifier = Modifier.fillMaxSize())
     }
 
@@ -82,6 +87,9 @@ private fun EntryProviderScope<Destination>.navigationEntries(
             Modifier.fillMaxSize(),
             navigatePostDetails = {
                 backStack.add(PostDetailsDestination(it))
+            },
+            navigateProfile = {
+                backStack.add(ViewProfileDestination(it))
             },
             navigateBack = {
                 backStack.removeLastOrNull()
@@ -95,6 +103,19 @@ private fun EntryProviderScope<Destination>.navigationEntries(
             Modifier.fillMaxSize(),
             navigatePostDetails = {
                 backStack.add(PostDetailsDestination(it))
+            },
+            navigateProfile = {
+                backStack.add(ViewProfileDestination(it))
+            },
+        )
+    }
+
+    entry<ViewProfileDestination> { destination ->
+        ViewProfileScreen(
+            vm = injectViewModel { parametersOf(destination.userId) },
+            modifier = Modifier.fillMaxSize(),
+            navigateBack = {
+                backStack.removeLastOrNull()
             },
         )
     }

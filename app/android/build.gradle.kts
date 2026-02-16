@@ -1,5 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -28,6 +26,14 @@ dependencies {
 
 dependencies {
 //    debugImplementation(libs.compose.uiTooling)
+}
+
+kotlin {
+    target {
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
 }
 
 android {

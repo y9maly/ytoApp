@@ -28,10 +28,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.LookaheadScope
 import androidx.compose.ui.unit.dp
-import me.maly.y9to.compose.ContentPadding
-import me.maly.y9to.compose.EmptyContentPadding
-import me.maly.y9to.compose.dropBottom
-import me.maly.y9to.compose.takeBottom
+import me.maly.y9to.compose.utils.ContentPadding
+import me.maly.y9to.compose.utils.EmptyContentPadding
+import me.maly.y9to.compose.utils.dropBottom
+import me.maly.y9to.compose.utils.takeBottom
 
 
 @OptIn(ExperimentalMaterial3Api::class)

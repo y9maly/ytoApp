@@ -21,6 +21,8 @@ plugins {
 }
 
 kotlin {
+    compilerOptions.freeCompilerArgs.add("-Xallow-holdsin-contract")
+
     applyDefaultHierarchyTemplate {
         common {
             group("nonJvm") {
@@ -142,9 +144,6 @@ kotlin {
             implementation(libs.filekit.dialogs)
             implementation(libs.coil.compose)
             implementation(project(":domain:types"))
-            implementation(project(":domain:repository:auth"))
-            implementation(project(":domain:repository:myProfile"))
-            implementation(project(":domain:repository:feed"))
         }
 
         jvmMain.dependencies {

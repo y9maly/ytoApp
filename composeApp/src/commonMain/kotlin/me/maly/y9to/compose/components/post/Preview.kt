@@ -1,6 +1,5 @@
 package me.maly.y9to.compose.components.post
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import me.maly.y9to.types.UiPost
@@ -73,7 +72,11 @@ private fun Repost() {
 @Preview
 @Composable
 private fun RepostRepost() {
-    PostCard(post = repostRepost)
+    PostCard(
+        post = repostRepost,
+        onClick = {},
+        gotoAuthorProfile = {}
+    )
 }
 
 @Preview

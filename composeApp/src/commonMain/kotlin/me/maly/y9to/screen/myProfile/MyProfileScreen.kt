@@ -8,7 +8,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.shrinkOut
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -50,27 +49,33 @@ import androidx.compose.ui.unit.IntSize
 import coil3.compose.AsyncImage
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
-import me.maly.y9to.compose.ContentPadding
-import me.maly.y9to.compose.EmptyContentPadding
 import me.maly.y9to.compose.components.accentEditable.AccentEditableOption
 import me.maly.y9to.compose.components.accentEditable.AccentEditableTextField
 import me.maly.y9to.compose.components.templates.profileScreen.AvatarOverlay
 import me.maly.y9to.compose.components.templates.profileScreen.CoverOverlay
 import me.maly.y9to.compose.components.templates.profileScreen.TemplateProfileItemScope
 import me.maly.y9to.compose.components.templates.profileScreen.TemplateProfileScreen
-import me.maly.y9to.compose.dropTop
-import me.maly.y9to.compose.plusAll
 import me.maly.y9to.compose.rememberFilePickerLauncher
+import me.maly.y9to.compose.utils.ContentPadding
+import me.maly.y9to.compose.utils.EmptyContentPadding
+import me.maly.y9to.compose.utils.dropTop
+import me.maly.y9to.compose.utils.plusAll
 import me.maly.y9to.types.UiUploadAvatarError
 import me.maly.y9to.types.UiUploadAvatarState
 import me.maly.y9to.types.UiUploadCoverError
 import me.maly.y9to.types.UiUploadCoverState
+import me.maly.y9to.viewModel.MyProfileScreenAction
+import me.maly.y9to.viewModel.MyProfileUiState
+import me.maly.y9to.viewModel.MyProfileViewModel
+import me.maly.y9to.viewModel.uiFirstBirthday
+import me.maly.y9to.viewModel.uiFirstDisplayName
+import me.maly.y9to.viewModel.uiFirstFirstName
+import me.maly.y9to.viewModel.uiFirstLastName
 import org.jetbrains.compose.resources.painterResource
 import pro.respawn.flowmvi.util.typed
 import y9to.common.types.Birthday
 import y9to.composeapp.generated.resources.Res
 import y9to.composeapp.generated.resources.arrow_circle_up
-import y9to.composeapp.generated.resources.cat1
 import y9to.composeapp.generated.resources.close
 import y9to.composeapp.generated.resources.edit
 import y9to.libs.stdlib.optional.present
@@ -549,30 +554,9 @@ private fun TemplateProfileItemScope.myProfileItems(
 
     item("Birthday") {
         AnimatedShrink(birthday != null || editMode) {
-            val value = when {
-                birthday == null -> "Not set"
-
-                birthday.year == null -> {
-                    val dayOnMonth = birthday.dayOfMonth.toString()
-                        .let { if (it.length == 1) "0$it" else it }
-                    val month = birthday.month.name.lowercase()
-                        .let { it[0].uppercase() + it.drop(1) }
-                    "$dayOnMonth $month"
-                }
-
-                else -> {
-                    val dayOnMonth = birthday.dayOfMonth.toString()
-                        .let { if (it.length == 1) "0$it" else it }
-                    val month = birthday.month.name.lowercase()
-                        .let { it[0].uppercase() + it.drop(1) }
-                    val year = birthday.year.toString()
-                    "$dayOnMonth $month, $year"
-                }
-            }
-
             AccentEditableOption(
                 name = "Birthday",
-                value = value,
+                value = birthday?.toDisplayString() ?: "Not set",
                 editMode = if (birthday == null) true else editMode,
                 trailing = {
                     AnimatedAlpha(editMode) {
@@ -600,6 +584,16 @@ private fun TemplateProfileItemScope.myProfileItems(
                 Text("Log out")
             }
         }
+    }
+}
+
+private fun Birthday.toDisplayString(): String {
+    val dayOnMonth = dayOfMonth.toString().padStart(2, '0')
+    val month = month.name.lowercase().replaceFirstChar(Char::uppercase)
+
+    return when (val year = year) {
+        null -> "$dayOnMonth $month"
+        else -> "$dayOnMonth $month, $year"
     }
 }
 

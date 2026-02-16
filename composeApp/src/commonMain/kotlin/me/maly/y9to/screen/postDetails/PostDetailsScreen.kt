@@ -14,6 +14,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import me.maly.y9to.compose.components.post.PostCard
+import me.maly.y9to.viewModel.PostDetailsUiState
+import me.maly.y9to.viewModel.PostDetailsViewModel
 import org.jetbrains.compose.resources.painterResource
 import y9to.composeapp.generated.resources.Res
 import y9to.composeapp.generated.resources.arrow_back
@@ -25,6 +27,7 @@ fun PostDetailsScreen(
     modifier: Modifier = Modifier,
     navigateBack: (() -> Unit)? = null,
     navigatePostDetails: ((postId: String) -> Unit)? = null,
+    navigateProfile: ((profileId: String) -> Unit)? = null,
 ) {
     val state by vm.state.collectAsState()
 
@@ -34,6 +37,7 @@ fun PostDetailsScreen(
             state = state,
             navigateBack = navigateBack,
             navigatePostDetails = navigatePostDetails,
+            navigateProfileDetails = navigateProfile,
         )
 
         else -> Text(state.toString())
@@ -47,6 +51,7 @@ private fun PostDetailsScreen(
     modifier: Modifier = Modifier,
     navigateBack: (() -> Unit)? = null,
     navigatePostDetails: ((postId: String) -> Unit)? = null,
+    navigateProfileDetails: ((profileId: String) -> Unit)? = null,
 ) {
     val post = state.post
 
@@ -76,6 +81,7 @@ private fun PostDetailsScreen(
                 post = post,
                 modifier = Modifier.fillMaxWidth(),
                 gotoPostDetails = navigatePostDetails,
+                gotoAuthorProfile = navigateProfileDetails,
             )
         }
     }

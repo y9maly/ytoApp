@@ -14,6 +14,8 @@ import me.maly.y9to.repository.CreatePostRepository
 import me.maly.y9to.repository.CreatePostRepositoryDefault
 import me.maly.y9to.repository.ViewPostRepository
 import me.maly.y9to.repository.ViewPostRepositoryDefault
+import me.maly.y9to.repository.ViewUserRepository
+import me.maly.y9to.repository.ViewUserRepositoryDefault
 import org.koin.dsl.module
 import kotlin.time.Clock
 
@@ -38,6 +40,10 @@ val repositoryModule = module {
 
     single<CreatePostRepository> {
         CreatePostRepositoryDefault(get())
+    }
+
+    factory<ViewUserRepository> {
+        ViewUserRepositoryDefault(get())
     }
 
     single<AuthInfoRepository> {

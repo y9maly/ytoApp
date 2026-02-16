@@ -23,6 +23,7 @@ import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,9 +32,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.layout.LookaheadScope
+import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.DpOffset
@@ -41,15 +41,15 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
-import me.maly.y9to.compose.collectAsStateUndispatched
+import me.maly.y9to.compose.utils.collectAsStateUndispatched
 import me.maly.y9to.compose.components.dropdownMenu.rememberDropdownMenuState
 import me.maly.y9to.compose.components.writePost.WriteAccount
 import me.maly.y9to.compose.components.writePost.WritePostContainer
 import me.maly.y9to.compose.components.writePost.rememberWritePostState
-import me.maly.y9to.compose.dropBottom
-import me.maly.y9to.compose.dropTop
-import me.maly.y9to.compose.plus
-import me.maly.y9to.types.UiPost
+import me.maly.y9to.compose.utils.dropBottom
+import me.maly.y9to.compose.utils.dropTop
+import me.maly.y9to.compose.utils.plus
+import me.maly.y9to.viewModel.FeedViewModel
 import org.jetbrains.compose.resources.painterResource
 import y9to.composeapp.generated.resources.Res
 import y9to.composeapp.generated.resources.cat1
@@ -64,6 +64,7 @@ fun FeedScreen(
     vm: FeedViewModel,
     modifier: Modifier = Modifier,
     navigatePostDetails: (postId: String) -> Unit = {},
+    navigateProfile: (userId: String) -> Unit = {},
     onEdit: (postId: String) -> Unit = {},
     onDelete: (postId: String) -> Unit = {},
     onReply: (postId: String) -> Unit = {},
@@ -85,137 +86,141 @@ fun FeedScreen(
         )
     }
 
-    var feedColumnPosition by remember { mutableStateOf(Offset.Zero) }
+    val postDropdownMenuState = rememberDropdownMenuState<UiFeedItem>()
 
-    val postDropdownMenuState = rememberDropdownMenuState<UiPost>()
+    var screenCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    var feedColumnCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    val feedColumnOffset by remember {
+        derivedStateOf {
+            val screenCoordinates = screenCoordinates
+                ?: return@derivedStateOf Offset.Zero
+            val feedColumnCoordinates = feedColumnCoordinates
+                ?: return@derivedStateOf Offset.Zero
+            screenCoordinates.localPositionOf(feedColumnCoordinates)
+        }
+    }
 
-    LookaheadScope {
-        Box {
-            Column(modifier.pullToRefresh(
-                isRefreshing = lazyPagingItems.loadState.refresh is LoadState.Loading,
-                state = rememberPullToRefreshState(),
-                onRefresh = { lazyPagingItems.refresh() }
-            )) {
-                FeedHeader(
-                    modifier = Modifier.fillMaxWidth(),
-                    state = headerState,
-                    contentPadding = contentPadding.dropBottom().plus(vertical = 8.dp)
-                )
+    Box(modifier
+        .onGloballyPositioned { screenCoordinates = it }
+    ) {
+        Column(Modifier.pullToRefresh(
+            isRefreshing = lazyPagingItems.loadState.refresh is LoadState.Loading,
+            state = rememberPullToRefreshState(),
+            onRefresh = { lazyPagingItems.refresh() }
+        )) {
+            FeedHeader(
+                modifier = Modifier.fillMaxWidth(),
+                state = headerState,
+                contentPadding = contentPadding.dropBottom().plus(vertical = 8.dp)
+            )
 
-                FeedColumn(
-                    vm.prependPosts,
-                    vm.prePublishPreviews,
-                    lazyPagingItems,
-                    Modifier.fillMaxSize()
-                        .onGloballyPositioned {
-                            feedColumnPosition = it.toLookaheadCoordinates().positionInParent()
-                        },
-                    gotoPostDetails = navigatePostDetails,
-                    openDropdownMenu = { post, position ->
-                        postDropdownMenuState.show(post, feedColumnPosition + position)
-                    },
-                    contentPadding = contentPadding.dropTop()
-                ) { postItems ->
-                    item {
-                        AnimatedVisibility(
-                            visible = writeAccount != null,
-                            enter =
-                                fadeIn() + expandIn(expandFrom = Alignment.TopStart) { IntSize(it.width, 0) },
-                            exit =
-                                fadeOut() + shrinkOut(shrinkTowards = Alignment.TopStart) { IntSize(it.width, 0) },
-                        ) {
-                            var savedWriteAccount by remember { mutableStateOf(writeAccount) }
-                            savedWriteAccount = writeAccount ?: savedWriteAccount
-                            val currentWriteAccount = savedWriteAccount ?: return@AnimatedVisibility
+            FeedColumn(
+                vm.publishPreviewItems,
+                vm.prependItems,
+                lazyPagingItems,
+                Modifier.fillMaxSize()
+                    .onGloballyPositioned { feedColumnCoordinates = it },
+                gotoPostDetails = navigatePostDetails,
+                gotoAuthorProfile = navigateProfile,
+                openDropdownMenu = { post, position ->
+                    postDropdownMenuState.show(post, feedColumnOffset + position)
+                },
+                contentPadding = contentPadding.dropTop()
+            ) { postItems ->
+                item {
+                    AnimatedVisibility(
+                        visible = writeAccount != null,
+                        enter =
+                            fadeIn() + expandIn(expandFrom = Alignment.TopStart) { IntSize(it.width, 0) },
+                        exit =
+                            fadeOut() + shrinkOut(shrinkTowards = Alignment.TopStart) { IntSize(it.width, 0) },
+                    ) {
+                        var savedWriteAccount by remember { mutableStateOf(writeAccount) }
+                        savedWriteAccount = writeAccount ?: savedWriteAccount
+                        val currentWriteAccount = savedWriteAccount ?: return@AnimatedVisibility
 
-                            Card {
-                                WritePostContainer(
-                                    state = writePostState,
-                                    writeAccount = currentWriteAccount,
-                                    onPublish = {
-                                        vm.publish(UiInputPostContent.Standalone(writePostState.text.text))
-                                        writePostState.text = TextFieldValue()
-                                        writePostState.expanded = false
-                                    }
-                                )
-                            }
+                        Card {
+                            WritePostContainer(
+                                state = writePostState,
+                                writeAccount = currentWriteAccount,
+                                onPublish = {
+                                    vm.publish(UiInputPostContent.Standalone(writePostState.text.text))
+                                    writePostState.text = TextFieldValue()
+                                    writePostState.expanded = false
+                                }
+                            )
                         }
                     }
-
-                    postItems()
                 }
+
+                postItems()
+            }
+        }
+
+        DropdownMenu(
+            expanded = postDropdownMenuState.value != null,
+            offset = with(LocalDensity.current) {
+                DpOffset(
+                    x = postDropdownMenuState.position.x.toDp(),
+                    y = postDropdownMenuState.position.y.toDp()
+                )
+            },
+            onDismissRequest = { postDropdownMenuState.hide() }
+        ) {
+            val item = remember { mutableStateOf(postDropdownMenuState.value) }
+                .apply { value = postDropdownMenuState.value ?: value }
+                .value ?: return@DropdownMenu
+
+            if (item.canReply) {
+                DropdownMenuItem(
+                    onClick = { onReply(item.post.id) },
+                    text = {
+                        Row(verticalAlignment = CenterVertically) {
+                            Icon(painterResource(Res.drawable.reply), null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("Reply")
+                        }
+                    }
+                )
             }
 
-            DropdownMenu(
-                expanded = postDropdownMenuState.value != null,
-                offset = with(LocalDensity.current) {
-                    DpOffset(
-                        x = postDropdownMenuState.position.x.toDp(),
-                        y = postDropdownMenuState.position.y.toDp()
-                    )
-                },
-                onDismissRequest = { postDropdownMenuState.hide() }
-            ) {
-                val item = remember { mutableStateOf(postDropdownMenuState.value) }
-                    .apply { value = postDropdownMenuState.value ?: value }
-                    .value ?: return@DropdownMenu
-
-                val canEdit by vm.canEdit(item).collectAsStateUndispatched(false)
-                val canDelete by vm.canDelete(item).collectAsStateUndispatched(false)
-                val canReply by vm.canReply(item).collectAsStateUndispatched(false)
-                val canRepost by vm.canRepost(item).collectAsStateUndispatched(false)
-
-                if (canReply) {
-                    DropdownMenuItem(
-                        onClick = { onReply(item.id) },
-                        text = {
-                            Row(verticalAlignment = CenterVertically) {
-                                Icon(painterResource(Res.drawable.reply), null)
-                                Spacer(Modifier.width(6.dp))
-                                Text("Reply")
-                            }
+            if (item.canEdit) {
+                DropdownMenuItem(
+                    onClick = { onEdit(item.post.id) },
+                    text = {
+                        Row(verticalAlignment = CenterVertically) {
+                            Icon(painterResource(Res.drawable.edit), null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("Edit")
                         }
-                    )
-                }
+                    }
+                )
+            }
 
-                if (canEdit) {
-                    DropdownMenuItem(
-                        onClick = { onEdit(item.id) },
-                        text = {
-                            Row(verticalAlignment = CenterVertically) {
-                                Icon(painterResource(Res.drawable.edit), null)
-                                Spacer(Modifier.width(6.dp))
-                                Text("Edit")
-                            }
+            if (item.canRepost) {
+                DropdownMenuItem(
+                    onClick = { onRepost(item.post.id) },
+                    text = {
+                        Row(verticalAlignment = CenterVertically) {
+                            Icon(painterResource(Res.drawable.repeat), null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("Repost")
                         }
-                    )
-                }
+                    }
+                )
+            }
 
-                if (canRepost) {
-                    DropdownMenuItem(
-                        onClick = { onRepost(item.id) },
-                        text = {
-                            Row(verticalAlignment = CenterVertically) {
-                                Icon(painterResource(Res.drawable.repeat), null)
-                                Spacer(Modifier.width(6.dp))
-                                Text("Repost")
-                            }
+            if (item.canDelete) {
+                DropdownMenuItem(
+                    onClick = { onDelete(item.post.id) },
+                    text = {
+                        Row(verticalAlignment = CenterVertically) {
+                            Icon(painterResource(Res.drawable.delete_forever), null)
+                            Spacer(Modifier.width(6.dp))
+                            Text("Delete")
                         }
-                    )
-                }
-
-                if (canDelete) {
-                    DropdownMenuItem(
-                        onClick = { onDelete(item.id) },
-                        text = {
-                            Row(verticalAlignment = CenterVertically) {
-                                Icon(painterResource(Res.drawable.delete_forever), null)
-                                Spacer(Modifier.width(6.dp))
-                                Text("Delete")
-                            }
-                        }
-                    )
-                }
+                    }
+                )
             }
         }
     }

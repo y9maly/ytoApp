@@ -11,6 +11,13 @@ data class UiPost(
     val content: UiPostContent,
 )
 
+data class UiPostPermissions(
+    val canEdit: Boolean,
+    val canDelete: Boolean,
+    val canReply: Boolean,
+    val canRepost: Boolean,
+)
+
 sealed interface UiPostAuthorPreview {
     val firstName: String
     val lastName: String?
@@ -55,7 +62,7 @@ sealed interface UiRepostPreview {
     val idOrNull: String? get() = (this as? Post)?.id
 }
 
-sealed interface UiPostTerminateAction {
-    data class Edited(val timestamp: Instant) : UiPostTerminateAction
-    data class Deletion(val timestamp: Instant) : UiPostTerminateAction
+sealed interface UiPostAction {
+    data class Edited(val timestamp: Instant) : UiPostAction
+    data class Deleted(val timestamp: Instant) : UiPostAction
 }

@@ -38,10 +38,11 @@ import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.serialization.Serializable
 import me.maly.y9to.compose.viewModel.injectViewModel
 import me.maly.y9to.screen.feed.FeedScreen
-import me.maly.y9to.screen.feed.FeedViewModel
+import me.maly.y9to.viewModel.FeedViewModel
 import me.maly.y9to.screen.myProfile.MyProfileScreen
-import me.maly.y9to.screen.myProfile.MyProfileViewModel
+import me.maly.y9to.viewModel.MyProfileViewModel
 import me.maly.y9to.screen.myProfile.rememberMyProfileScreenState
+import me.maly.y9to.viewModel.MainFlowViewModel
 import org.jetbrains.compose.resources.painterResource
 import y9to.composeapp.generated.resources.Res
 import y9to.composeapp.generated.resources.filter_list
@@ -72,6 +73,7 @@ fun MainFlowScreen(
     authenticate: () -> Unit,
     modifier: Modifier = Modifier,
     navigatePostDetails: (postId: String) -> Unit = {},
+    navigateProfile: (profileId: String) -> Unit = {},
 ) {
     var profileEditing by remember { mutableStateOf(false) }
     val navbarVisible by remember { derivedStateOf { !profileEditing } }
@@ -160,6 +162,7 @@ fun MainFlowScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentPadding = scaffoldPadding,
                                 navigatePostDetails = navigatePostDetails,
+                                navigateProfile = navigateProfile,
                             )
                         }
 

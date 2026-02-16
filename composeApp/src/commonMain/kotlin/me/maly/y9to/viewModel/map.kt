@@ -33,7 +33,7 @@ fun PostContent.map(): UiPostContent = when (this) {
                 id = preview.postId.long.toString(),
                 author = when (val author = preview.author) {
                     is PostAuthorPreview.User -> UiPostAuthorPreview.User(
-                        id = author.id.toString(),
+                        id = author.id.long.toString(),
                         firstName = author.firstName,
                         lastName = author.lastName,
                     )
@@ -52,7 +52,7 @@ fun PostContent.map(): UiPostContent = when (this) {
                 deletionDate = preview.deletionDate,
                 author = when (val author = preview.author) {
                     is PostAuthorPreview.User -> UiPostAuthorPreview.User(
-                        id = author.id.toString(),
+                        id = author.id.long.toString(),
                         firstName = author.firstName,
                         lastName = author.lastName,
                     )

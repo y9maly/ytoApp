@@ -61,6 +61,7 @@ kotlin {
             implementation(project(":domain:types"))
             implementation("androidx.paging:paging-common:3.4.0-rc01")
             implementation("me.maly.y9to:sdk:1.0-SNAPSHOT")
+            api("me.maly.y9to:paging:1.0-SNAPSHOT")
             implementation("me.maly.y9to:api-types:1.0-SNAPSHOT")
             implementation("me.maly.y9to:api-inputs:1.0-SNAPSHOT")
             implementation("me.maly.y9to:api-results:1.0-SNAPSHOT")

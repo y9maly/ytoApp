@@ -30,6 +30,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import me.maly.y9to.viewModel.FeedHeaderUiState
+import me.maly.y9to.viewModel.displayName
 import org.jetbrains.compose.resources.painterResource
 import y9to.composeapp.generated.resources.Res
 import y9to.composeapp.generated.resources.search
@@ -64,20 +66,17 @@ fun FeedHeader(
                 )
             }
 
-            is FeedHeaderUiState.Authenticated -> {
-                Text(
-                    "Hello, ${state.firstName} ${state.lastName ?: ""}!",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 32.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-
+            is FeedHeaderUiState.Authenticated,
             is FeedHeaderUiState.Unauthenticated -> {
+                val displayName = when (state) {
+                    is FeedHeaderUiState.Authenticated -> state.displayName
+                    is FeedHeaderUiState.Unauthenticated -> "Guest"
+                }
+
+                val text = "Hello, $displayName!"
+
                 Text(
-                    "Hello, Guest",
+                    text,
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold,
                     fontSize = 32.sp,
