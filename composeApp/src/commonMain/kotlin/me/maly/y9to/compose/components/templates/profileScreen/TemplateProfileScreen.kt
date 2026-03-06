@@ -7,14 +7,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -24,7 +22,6 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.LookaheadScope
 import androidx.compose.ui.unit.dp
@@ -44,6 +41,7 @@ fun TemplateProfileScreen(
     coverOverlay: CoverOverlay,
     avatarOverlay: AvatarOverlay,
     modifier: Modifier = Modifier,
+    navigateIcon: @Composable () -> Unit = {},
     canChangeFullName: Boolean = false,
     onChangeFullName: () -> Unit = {},
     verticalArrangement: Arrangement.Vertical = Arrangement.Top,
@@ -55,7 +53,7 @@ fun TemplateProfileScreen(
     val displayName = lastName?.let { "$firstName $lastName" } ?: firstName
     val scrollState = rememberScrollState()
 
-    Scaffold(
+    Column(
         modifier = modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection)
             // на маке на трекпаде сломан nested scroll, мб ещё на мышке я хз.
@@ -64,29 +62,27 @@ fun TemplateProfileScreen(
             .scrollable(ScrollableState {
                 -scrollState.dispatchRawDelta(-it)
             }, Orientation.Vertical),
-        containerColor = Color.Transparent,
-        topBar = {
-            Header(
-                scrollBehavior = scrollBehavior,
-                cover = cover,
-                avatar = avatar,
-                coverOverlay = coverOverlay,
-                avatarOverlay = avatarOverlay,
-                displayName = {
-                    HeaderDefaults.DisplayName(
-                        string = displayName,
-                        canEdit = canChangeFullName,
-                        onEdit = onChangeFullName,
-                        collapsedFraction = it,
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-    ) { scaffoldPadding ->
+    ) {
+        Header(
+            scrollBehavior = scrollBehavior,
+            cover = cover,
+            avatar = avatar,
+            coverOverlay = coverOverlay,
+            avatarOverlay = avatarOverlay,
+            displayName = {
+                HeaderDefaults.DisplayName(
+                    string = displayName,
+                    canEdit = canChangeFullName,
+                    onEdit = onChangeFullName,
+                    collapsedFraction = it,
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            navigateIcon = navigateIcon,
+        )
+
         Box(Modifier
             .padding(contentPadding.dropBottom())
-            .padding(scaffoldPadding.dropBottom())
         ) {
             LookaheadScope {
                 val items by remember(items) {
@@ -97,7 +93,7 @@ fun TemplateProfileScreen(
 
                 Column(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .verticalScroll(scrollState, enabled = false),
                     verticalArrangement = verticalArrangement,
                     horizontalAlignment = horizontalAlignment
@@ -110,7 +106,6 @@ fun TemplateProfileScreen(
 
                     Spacer(Modifier
                         .padding(contentPadding.takeBottom())
-                        .padding(scaffoldPadding.takeBottom())
                     )
                 }
             }

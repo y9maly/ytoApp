@@ -143,6 +143,8 @@ kotlin {
             implementation(libs.filekit.core)
             implementation(libs.filekit.dialogs)
             implementation(libs.coil.compose)
+            implementation(project(":libs:async-image:core"))
+            implementation(project(":libs:async-image:coil-backend"))
             implementation(project(":domain:types"))
         }
 

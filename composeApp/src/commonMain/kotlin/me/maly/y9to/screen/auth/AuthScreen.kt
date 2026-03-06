@@ -14,6 +14,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
+import me.maly.y9to.compose.utils.ContentPadding
+import me.maly.y9to.compose.utils.EmptyContentPadding
 import me.maly.y9to.viewModel.AuthScreenAction
 import me.maly.y9to.viewModel.AuthUiState
 import me.maly.y9to.viewModel.AuthViewModel
@@ -26,6 +28,7 @@ import pro.respawn.flowmvi.util.typed
 fun AuthScreen(
     vm: AuthViewModel,
     modifier: Modifier = Modifier,
+    contentPadding: ContentPadding = EmptyContentPadding,
 ) {
     var dialog by remember { mutableStateOf<String?>(null) }
     val state by vm.state.collectAsState()
@@ -65,6 +68,7 @@ fun AuthScreen(
             is AuthUiState.Unauthenticated -> {
                 EnterPhoneNumberScreen(
                     modifier = Modifier.fillMaxSize(),
+                    contentPadding = contentPadding,
                     phoneNumber = phoneNumber,
                     onChangePhoneNumber = {
                         phoneNumber = it
@@ -81,6 +85,7 @@ fun AuthScreen(
             is AuthUiState.ConfirmCode -> {
                 EnterConfirmCodeScreen(
                     modifier = Modifier.fillMaxSize(),
+                    contentPadding = contentPadding,
                     code = confirmCode,
                     onChangeCode = {
                         confirmCode = it
@@ -101,6 +106,7 @@ fun AuthScreen(
             is AuthUiState.Password -> {
                 EnterPasswordScreen(
                     modifier = Modifier.fillMaxSize(),
+                    contentPadding = contentPadding,
                     password = password,
                     onChangePassword = {
                         password = it

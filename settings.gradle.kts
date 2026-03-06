@@ -47,6 +47,7 @@ q[0][c+1];dfs(c,f);c=q[2][c]!!.hashCode()}};dfs(0, ":${q[0][1]}")}})
 include(":app:android")
 include(":app:web")
 include(":app:desktop")
+include(":app:macos")
 include(":composeApp")
 
 include("domain") {
@@ -56,4 +57,9 @@ include("domain") {
     "workers" {}
 }
 
-include("libs") {}
+include("libs") {
+    "async-image" {
+        "core"()
+        "coil-backend"()
+    }
+}

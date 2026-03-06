@@ -41,6 +41,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import me.maly.y9to.compose.utils.ContentPadding
+import me.maly.y9to.compose.utils.EmptyContentPadding
 import me.maly.y9to.screen.auth.TemplateEnterScreen.EmitResult
 import org.jetbrains.compose.resources.painterResource
 import y9to.composeapp.generated.resources.Res
@@ -77,6 +79,7 @@ fun TemplateEnterScreen(
     errorText: String?,
     fabEnabled: Boolean,
     modifier: Modifier = Modifier,
+    contentPadding: ContentPadding = EmptyContentPadding,
 ) {
     var dialog by remember { mutableStateOf<TemplateEnterScreen.DialogProperties?>(null) }
 
@@ -91,6 +94,7 @@ fun TemplateEnterScreen(
         Column(
             Modifier
                 .fillMaxSize()
+                .padding(contentPadding)
                 .blur(backgroundBlur)
                 .padding(horizontal = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

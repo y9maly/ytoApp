@@ -4,6 +4,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
+import me.maly.y9to.compose.utils.ContentPadding
+import me.maly.y9to.compose.utils.EmptyContentPadding
 
 @Composable
 fun EnterConfirmCodeScreen(
@@ -14,9 +16,11 @@ fun EnterConfirmCodeScreen(
     loading: Boolean,
     invalidCode: Boolean,
     modifier: Modifier = Modifier,
+    contentPadding: ContentPadding = EmptyContentPadding,
 ) {
     TemplateEnterScreen(
         modifier = modifier,
+        contentPadding = contentPadding,
         value = code,
         onChangeValue = { onChangeCode(it.copy(text = it.text.filter { it.isDigit() })) },
         title = "Confirm code",

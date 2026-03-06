@@ -10,7 +10,7 @@ import y9to.api.types.PostId
 import y9to.libs.stdlib.coroutines.flow.collectIn
 
 
-class PostDetailsDefaultViewModel(
+class PostDetailsViewModelDefault(
     private val viewPostRepository: ViewPostRepository,
     uiPostId: String,
 ) : ViewModel(), PostDetailsViewModel {

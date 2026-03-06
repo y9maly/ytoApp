@@ -1,0 +1,165 @@
+package me.maly.y9to.viewModel
+
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
+import androidx.paging.map
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import me.maly.y9to.compose.FileImageRequest
+import me.maly.y9to.repository.CreatePostRepository
+import me.maly.y9to.repository.MyProfileRepository
+import me.maly.y9to.repository.ProfileFeedRepository
+import me.maly.y9to.repository.ViewUserRepository
+import me.maly.y9to.screen.feed.UiFeedItem
+import me.maly.y9to.screen.feed.UiInputPostContent
+import me.maly.y9to.screen.feed.UiPostPrePublishPreview
+import me.maly.y9to.screen.feed.copy
+import me.maly.y9to.screen.feed.copyAsError
+import me.maly.y9to.types.UiMyProfile
+import me.maly.y9to.types.UiPostAuthorPreview
+import me.maly.y9to.types.UiPostContent
+import me.maly.y9to.types.UiProfile
+import y9to.api.types.InputPostContent
+import y9to.api.types.InputPostLocation
+import y9to.api.types.InputUser
+import y9to.api.types.Post
+import y9to.api.types.UserId
+import y9to.libs.stdlib.coroutines.flow.collectLatestIn
+import y9to.libs.stdlib.successOrElse
+import kotlin.collections.set
+import kotlin.time.Clock
+
+
+class ViewProfileViewModelDefault(
+    uiUserId: String,
+    private val repository: ViewUserRepository,
+    private val myProfileRepository: MyProfileRepository,
+    private val feedRepository: ProfileFeedRepository,
+    private val createPostRepository: CreatePostRepository,
+) : ViewModel(), ViewProfileViewModel {
+    val userId = uiUserId.toLongOrNull()?.let(::UserId)
+
+    override val state = MutableStateFlow<ViewProfileUiState>(ViewProfileUiState.Loading)
+
+    override val myProfile = myProfileRepository.myProfile.map { myProfile ->
+        if (myProfile == null)
+            return@map null
+
+        UiMyProfile(
+            userId = myProfile.id.long.toString(),
+            firstName = myProfile.firstName,
+            lastName = myProfile.lastName,
+            cover = myProfile.cover?.let { FileImageRequest(it) },
+            avatar = myProfile.avatar?.let { FileImageRequest(it) },
+            phoneNumber = myProfile.phoneNumber,
+            email = myProfile.email,
+            bio = myProfile.bio,
+            birthday = myProfile.birthday,
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val postLookup = mutableStateMapOf<String, Post>()
+
+    override val pagerFlow = feedRepository.createPager(userId ?: TODO())
+        .flow
+        .map { pagingData ->
+            pagingData.map { post ->
+                UiFeedItem(post.mapAndSave(), true, true, true, true)
+            }
+        }
+        .cachedIn(viewModelScope)
+
+    override val prependItems = mutableStateListOf<UiFeedItem>()
+
+    override val publishPreviewItems = mutableStateListOf<UiPostPrePublishPreview>()
+
+    init {
+        if (userId != null) {
+            repository.getFlow(userId).collectLatestIn(viewModelScope) { user ->
+                if (user == null) {
+                    state.value = ViewProfileUiState.Error("Invalid user id $uiUserId")
+                    return@collectLatestIn
+                }
+
+                val uiProfile = UiProfile(
+                    userId = uiUserId,
+                    firstName = user.firstName,
+                    lastName = user.lastName,
+                    cover = user.cover?.let(::FileImageRequest),
+                    avatar = user.avatar?.let(::FileImageRequest),
+                    phoneNumber = user.phoneNumber,
+                    email = user.email,
+                    bio = user.bio,
+                    birthday = user.birthday,
+                )
+
+                state.value = ViewProfileUiState.Content(uiProfile)
+            }
+        } else {
+            state.value = ViewProfileUiState.Error("Invalid user id $uiUserId")
+        }
+    }
+
+    override fun publish(content: UiInputPostContent): Unit = viewModelScope.launch {
+        val minimalExecutionTime = launch { delay(400) }
+
+        var prePublishPreview: UiPostPrePublishPreview = UiPostPrePublishPreview.Pending(
+            author = null,
+            publishDate = Clock.System.now(),
+            content = when (content) {
+                is UiInputPostContent.Standalone -> UiPostContent.Standalone(content.text)
+            }
+        ).also { publishPreviewItems.add(it) }
+
+        val addAuthorPreview = launch {
+            val me = myProfileRepository.myProfile.first()
+                ?: return@launch
+
+            prePublishPreview = publishPreviewItems.replace(prePublishPreview, prePublishPreview.copy(
+                UiPostAuthorPreview.User(
+                    id = me.id.long.toString(),
+                    firstName = me.firstName,
+                    lastName = me.lastName,
+                )
+            )) ?: return@launch
+        }
+
+        val post = createPostRepository.create(
+            location = InputPostLocation.Profile(InputUser.Id(userId ?: TODO())),
+            replyTo = null,
+            content = when (content) {
+                is UiInputPostContent.Standalone -> InputPostContent.Standalone(content.text)
+            }
+        ).successOrElse { error ->
+            prePublishPreview = publishPreviewItems.replace(prePublishPreview, prePublishPreview.copyAsError(
+                errorMessage = error.toString()
+            )) ?: return@launch
+            return@launch
+        }
+
+        addAuthorPreview.cancel()
+
+        minimalExecutionTime.join()
+        publishPreviewItems.remove(prePublishPreview)
+        prependItems.add(0, UiFeedItem(post.mapAndSave(), true, true, true, true))
+    }.run {}
+
+    private fun Post.mapAndSave() = map()
+        .also { postLookup[it.id] = this }
+
+    private fun <T : Any> MutableList<T>.replace(old: T, new: T): T? {
+        val index = indexOf(old)
+        if (index == -1) return null
+        set(index, new)
+        return new
+    }
+}

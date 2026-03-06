@@ -36,6 +36,9 @@ import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.serialization.Serializable
+import me.maly.y9to.compose.utils.ContentPadding
+import me.maly.y9to.compose.utils.EmptyContentPadding
+import me.maly.y9to.compose.utils.plusAll
 import me.maly.y9to.compose.viewModel.injectViewModel
 import me.maly.y9to.screen.feed.FeedScreen
 import me.maly.y9to.viewModel.FeedViewModel
@@ -72,6 +75,7 @@ fun MainFlowScreen(
     vm: MainFlowViewModel,
     authenticate: () -> Unit,
     modifier: Modifier = Modifier,
+    contentPadding: ContentPadding = EmptyContentPadding,
     navigatePostDetails: (postId: String) -> Unit = {},
     navigateProfile: (profileId: String) -> Unit = {},
 ) {
@@ -160,7 +164,7 @@ fun MainFlowScreen(
                             FeedScreen(
                                 vm = feedVM,
                                 modifier = Modifier.fillMaxSize(),
-                                contentPadding = scaffoldPadding,
+                                contentPadding = contentPadding plusAll scaffoldPadding,
                                 navigatePostDetails = navigatePostDetails,
                                 navigateProfile = navigateProfile,
                             )
@@ -177,7 +181,7 @@ fun MainFlowScreen(
                             MyProfileScreen(
                                 vm = myProfileVM,
                                 modifier = Modifier.fillMaxSize(),
-                                contentPadding = scaffoldPadding,
+                                contentPadding = contentPadding plusAll scaffoldPadding,
                                 screenState = state,
                             )
                         }

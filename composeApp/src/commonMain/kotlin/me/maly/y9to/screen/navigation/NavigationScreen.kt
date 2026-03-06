@@ -15,6 +15,8 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
 import kotlinx.coroutines.flow.filter
+import me.maly.y9to.compose.utils.ContentPadding
+import me.maly.y9to.compose.utils.EmptyContentPadding
 import me.maly.y9to.compose.viewModel.injectViewModel
 import me.maly.y9to.navigation.destination.AuthDestination
 import me.maly.y9to.navigation.destination.Destination
@@ -36,6 +38,7 @@ fun NavigationScreen(
     vm: NavigationViewModel,
     backStack: MutableList<Destination>,
     modifier: Modifier = Modifier,
+    baseContentPadding: ContentPadding = EmptyContentPadding,
 ) {
     LaunchedEffect(Unit) {
         vm.isAuthenticated.filter { it == true }.collect {
@@ -58,33 +61,46 @@ fun NavigationScreen(
             slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
         },
         entryProvider = entryProvider {
-            navigationEntries(backStack)
+            navigationEntries(backStack, baseContentPadding)
         }
     )
 }
 
 private fun EntryProviderScope<Destination>.navigationEntries(
     backStack: MutableList<Destination>,
+    baseContentPadding: ContentPadding = EmptyContentPadding,
 ) {
     entry<AuthDestination> {
-        AuthScreen(injectViewModel(), Modifier.fillMaxSize())
+        AuthScreen(
+            vm = injectViewModel(),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = baseContentPadding,
+        )
     }
 
     entry<MainFlowDestination> {
-        MainFlowScreen(injectViewModel(), authenticate = {
-            backStack.clear()
-            backStack.add(AuthDestination)
-        }, navigatePostDetails = {
-            backStack.add(PostDetailsDestination(it))
-        }, navigateProfile = {
-            backStack.add(ViewProfileDestination(it))
-        }, modifier = Modifier.fillMaxSize())
+        MainFlowScreen(
+            vm = injectViewModel(),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = baseContentPadding,
+            authenticate = {
+                backStack.clear()
+                backStack.add(AuthDestination)
+            },
+            navigatePostDetails = {
+                backStack.add(PostDetailsDestination(it))
+            },
+            navigateProfile = {
+                backStack.add(ViewProfileDestination(it))
+            },
+        )
     }
 
     entry<PostDetailsDestination> { destination ->
         PostDetailsScreen(
-            injectViewModel { parametersOf(destination.postId) },
-            Modifier.fillMaxSize(),
+            vm = injectViewModel { parametersOf(destination.postId) },
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = baseContentPadding,
             navigatePostDetails = {
                 backStack.add(PostDetailsDestination(it))
             },
@@ -93,14 +109,15 @@ private fun EntryProviderScope<Destination>.navigationEntries(
             },
             navigateBack = {
                 backStack.removeLastOrNull()
-            }
+            },
         )
     }
 
     entry<FeedDestination> {
         FeedScreen(
-            injectViewModel(),
-            Modifier.fillMaxSize(),
+            vm = injectViewModel(),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = baseContentPadding,
             navigatePostDetails = {
                 backStack.add(PostDetailsDestination(it))
             },
@@ -114,6 +131,7 @@ private fun EntryProviderScope<Destination>.navigationEntries(
         ViewProfileScreen(
             vm = injectViewModel { parametersOf(destination.userId) },
             modifier = Modifier.fillMaxSize(),
+            contentPadding = baseContentPadding,
             navigateBack = {
                 backStack.removeLastOrNull()
             },

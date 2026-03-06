@@ -46,9 +46,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.LookaheadScope
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.IntSize
-import coil3.compose.AsyncImage
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
+import me.maly.y9to.compose.asyncImage.AsyncImage
 import me.maly.y9to.compose.components.accentEditable.AccentEditableOption
 import me.maly.y9to.compose.components.accentEditable.AccentEditableTextField
 import me.maly.y9to.compose.components.templates.profileScreen.AvatarOverlay

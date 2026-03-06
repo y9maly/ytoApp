@@ -173,6 +173,8 @@ fun FeedColumn(
                         is LoadState.Error -> {
                             Text("Oops, something went wrong...")
                             Spacer(Modifier.height(8.dp))
+                            Text(state.error.toString())
+                            Spacer(Modifier.height(8.dp))
                             Button({ items.retry() }) { Text("Retry") }
                         }
 

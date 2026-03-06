@@ -4,6 +4,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
+import me.maly.y9to.compose.utils.ContentPadding
+import me.maly.y9to.compose.utils.EmptyContentPadding
 
 
 @Composable
@@ -15,9 +17,11 @@ fun EnterPasswordScreen(
     loading: Boolean,
     invalidPassword: Boolean,
     modifier: Modifier = Modifier,
+    contentPadding: ContentPadding = EmptyContentPadding,
 ) {
     TemplateEnterScreen(
         modifier = modifier,
+        contentPadding = contentPadding,
         value = password,
         onChangeValue = onChangePassword,
         title = "Password",

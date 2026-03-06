@@ -14,7 +14,9 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,6 +46,7 @@ import androidx.compose.ui.layout.SubcomposeLayout
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.constrain
 import androidx.compose.ui.unit.dp
@@ -91,6 +94,9 @@ private data class HeaderLayout(
 private fun MeasureScope.expanded(
     constraints: Constraints,
     height: Float,
+    avatarSize: Dp,
+    avatarBorderWidth: Dp,
+    navigateIconPlaceable: Placeable,
     namePlaceable: Placeable,
 ): HeaderLayout {
     val nameTopOffset = 8.dp.toPx()
@@ -100,7 +106,7 @@ private fun MeasureScope.expanded(
         height = height,
     )
 
-    val avatarSize = avatarSize.toPx().let { Size(it, it) }
+    val avatarSize = Size(avatarSize.toPx(), avatarSize.toPx())
 
     var avatarOffset = Alignment.BottomCenter.align(
         avatarSize.roundToIntSize(),
@@ -148,19 +154,21 @@ private fun MeasureScope.expanded(
 
 private fun MeasureScope.collapsed(
     constraints: Constraints,
+    avatarSize: Dp,
+    navigateIconPlaceable: Placeable,
     namePlaceable: Placeable,
 ): HeaderLayout {
-    val avatarStartOffset = 12.dp.toPx()
+    val avatarStartOffset = navigateIconPlaceable.width + 12.dp.toPx()
     val nameStartOffset = 12.dp.toPx()
 
-    val avatarSize = collapsedAvatarSize.toPx().let { Size(it, it) }
+    val avatarSize = Size(avatarSize.toPx(), avatarSize.toPx())
 
     val coverSize = Size(
         width = constraints.maxWidth.toFloat(),
-        height = collapsedCoverHeight.toPx()
+        height = constraints.maxHeight.toFloat()
     )
 
-    var avatarOffset = collapsedAvatarAlignment.align(
+    var avatarOffset = Alignment.CenterStart.align(
         avatarSize.roundToIntSize(),
         coverSize.roundToIntSize(),
         layoutDirection
@@ -249,12 +257,23 @@ internal fun Header(
     avatarOverlay: AvatarOverlay,
     displayName: @Composable (collapsedFraction: Float) -> Unit,
     modifier: Modifier = Modifier,
+    navigateIcon: @Composable () -> Unit = {},
     expandedHeight: Dp = 260.dp,
+    expandedAvatarSize: Dp = 130.dp,
     collapsedHeight: Dp = 64.dp,
+    collapsedAvatarSize: Dp = 50.dp,
+    avatarBorderWidth: Dp = 5.dp,
+    avatarShape: Shape = CircleShape,
     contentPadding: PaddingValues = EmptyContentPadding,
 ) {
     SubcomposeLayout(modifier) { constraints ->
         val collapsedFraction = scrollBehavior.state.heightOffset / scrollBehavior.state.heightOffsetLimit
+
+        val navigateIconPlaceable = subcompose(-1) {
+            Box(Modifier.height(collapsedHeight)) {
+                navigateIcon()
+            }
+        }.single().measure(constraints.copyMaxDimensions())
 
         val namePlaceable = subcompose(0) {
             displayName(collapsedFraction)
@@ -262,8 +281,8 @@ internal fun Header(
 
         val expandedConstraints = Constraints.fixedHeight(expandedHeight.roundToPx())
         val collapsedConstraints = Constraints.fixedHeight(collapsedHeight.roundToPx())
-        val expanded = expanded(constraints.constrain(expandedConstraints), expandedHeight.toPx(), namePlaceable)
-        val collapsed = collapsed(constraints.constrain(collapsedConstraints), namePlaceable)
+        val expanded = expanded(constraints.constrain(expandedConstraints), expandedHeight.toPx(), expandedAvatarSize, avatarBorderWidth, navigateIconPlaceable, namePlaceable)
+        val collapsed = collapsed(constraints.constrain(collapsedConstraints), collapsedAvatarSize, navigateIconPlaceable, namePlaceable)
         scrollBehavior.state.heightOffsetLimit = collapsed.size.height - expanded.size.height
         scrollBehavior.state.heightOffset = scrollBehavior.state.heightOffset.coerceIn(minimumValue = scrollBehavior.state.heightOffsetLimit, maximumValue = 0f)
         val current = lerp(expanded, collapsed, collapsedFraction)
@@ -287,7 +306,7 @@ internal fun Header(
                         .cut(
                             cutSize = current.cutSize,
                             alpha = current.cutAlpha,
-                            shape = avatarBorderShape,
+                            shape = avatarShape,
                             offset = current.cutOffset
                         ),
                     cover,
@@ -302,6 +321,7 @@ internal fun Header(
             coverPlaceable.place(current.coverOffset.round())
             avatarPlaceable.place(current.avatarOffset.round())
             namePlaceable.place(current.nameOffset.round())
+            navigateIconPlaceable.place(0, 0)
         }
     }
 }

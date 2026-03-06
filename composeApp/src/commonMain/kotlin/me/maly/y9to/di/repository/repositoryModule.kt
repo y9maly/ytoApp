@@ -6,12 +6,14 @@ import me.maly.y9to.repository.AuthInfoRepository
 import me.maly.y9to.repository.AuthInfoRepositoryDefault
 import me.maly.y9to.repository.AuthRepository
 import me.maly.y9to.repository.AuthRepositoryDefault
-import me.maly.y9to.repository.FeedRepository
-import me.maly.y9to.repository.FeedRepositoryDefault
+import me.maly.y9to.repository.GlobalFeedRepository
+import me.maly.y9to.repository.GlobalFeedRepositoryDefault
 import me.maly.y9to.repository.MyProfileRepository
 import me.maly.y9to.repository.MyProfileRepositoryDefault
 import me.maly.y9to.repository.CreatePostRepository
 import me.maly.y9to.repository.CreatePostRepositoryDefault
+import me.maly.y9to.repository.ProfileFeedRepository
+import me.maly.y9to.repository.ProfileFeedRepositoryDefault
 import me.maly.y9to.repository.ViewPostRepository
 import me.maly.y9to.repository.ViewPostRepositoryDefault
 import me.maly.y9to.repository.ViewUserRepository
@@ -30,8 +32,8 @@ val repositoryModule = module {
         )
     }
 
-    single<FeedRepository> {
-        FeedRepositoryDefault(get())
+    single<GlobalFeedRepository> {
+        GlobalFeedRepositoryDefault(get())
     }
 
     single<ViewPostRepository> {
@@ -52,5 +54,9 @@ val repositoryModule = module {
 
     single<AuthRepository> {
         AuthRepositoryDefault(get())
+    }
+
+    factory<ProfileFeedRepository> {
+        ProfileFeedRepositoryDefault(get())
     }
 }

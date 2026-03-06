@@ -29,7 +29,7 @@ fun ComponentRegistry.Builder.fileImageRequests(client: Client) {
 }
 
 
-// --- это временно ---
+// --- todo это было временно, надо перенести ---
 
 
 private class FileImageRequestFetcher(

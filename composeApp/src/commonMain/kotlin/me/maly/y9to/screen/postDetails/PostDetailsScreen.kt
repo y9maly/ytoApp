@@ -14,6 +14,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import me.maly.y9to.compose.components.post.PostCard
+import me.maly.y9to.compose.utils.ContentPadding
+import me.maly.y9to.compose.utils.EmptyContentPadding
+import me.maly.y9to.compose.utils.plusAll
 import me.maly.y9to.viewModel.PostDetailsUiState
 import me.maly.y9to.viewModel.PostDetailsViewModel
 import org.jetbrains.compose.resources.painterResource
@@ -25,6 +28,7 @@ import y9to.composeapp.generated.resources.arrow_back
 fun PostDetailsScreen(
     vm: PostDetailsViewModel,
     modifier: Modifier = Modifier,
+    contentPadding: ContentPadding = EmptyContentPadding,
     navigateBack: (() -> Unit)? = null,
     navigatePostDetails: ((postId: String) -> Unit)? = null,
     navigateProfile: ((profileId: String) -> Unit)? = null,
@@ -34,6 +38,7 @@ fun PostDetailsScreen(
     when (val state = state) {
         is PostDetailsUiState.Content -> PostDetailsScreen(
             modifier = modifier,
+            contentPadding = contentPadding,
             state = state,
             navigateBack = navigateBack,
             navigatePostDetails = navigatePostDetails,
@@ -49,6 +54,7 @@ fun PostDetailsScreen(
 private fun PostDetailsScreen(
     state: PostDetailsUiState.Content,
     modifier: Modifier = Modifier,
+    contentPadding: ContentPadding = EmptyContentPadding,
     navigateBack: (() -> Unit)? = null,
     navigatePostDetails: ((postId: String) -> Unit)? = null,
     navigateProfileDetails: ((profileId: String) -> Unit)? = null,
@@ -76,7 +82,7 @@ private fun PostDetailsScreen(
             )
         }
     ) { scaffoldPadding ->
-        Box(Modifier.padding(scaffoldPadding)) {
+        Box(Modifier.padding(contentPadding plusAll scaffoldPadding)) {
             PostCard(
                 post = post,
                 modifier = Modifier.fillMaxWidth(),

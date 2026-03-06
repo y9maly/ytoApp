@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 import me.maly.y9to.compose.FileImageRequest
 import me.maly.y9to.repository.AuthInfoRepository
 import me.maly.y9to.repository.CreatePostRepository
-import me.maly.y9to.repository.FeedRepository
+import me.maly.y9to.repository.GlobalFeedRepository
 import me.maly.y9to.repository.MyProfileRepository
 import me.maly.y9to.repository.ViewPostRepository
 import me.maly.y9to.screen.feed.UiFeedItem
@@ -29,6 +29,7 @@ import me.maly.y9to.types.UiMyProfile
 import me.maly.y9to.types.UiPostAuthorPreview
 import me.maly.y9to.types.UiPostContent
 import y9to.api.types.InputPostContent
+import y9to.api.types.InputPostLocation
 import y9to.api.types.Post
 import y9to.libs.stdlib.coroutines.flow.collectIn
 import y9to.libs.stdlib.successOrElse
@@ -38,7 +39,7 @@ import kotlin.time.Clock
 class FeedDefaultViewModel(
     private val authInfoRepository: AuthInfoRepository,
     private val myProfileRepository: MyProfileRepository,
-    private val feedRepository: FeedRepository,
+    private val globalFeedRepository: GlobalFeedRepository,
     private val viewPostRepository: ViewPostRepository,
     private val createPostRepository: CreatePostRepository,
 ) : ViewModel(), FeedViewModel {
@@ -63,7 +64,7 @@ class FeedDefaultViewModel(
 
     private val postLookup = mutableStateMapOf<String, Post>()
 
-    override val pagerFlow = feedRepository.createPager()
+    override val pagerFlow = globalFeedRepository.createPager()
         .flow
         .map { pagingData ->
             pagingData.map { post ->
@@ -101,6 +102,7 @@ class FeedDefaultViewModel(
         }
 
         val post = createPostRepository.create(
+            location = InputPostLocation.Global,
             replyTo = null,
             content = when (content) {
                 is UiInputPostContent.Standalone -> InputPostContent.Standalone(content.text)
